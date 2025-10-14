@@ -44,7 +44,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button 
                 size="lg" 
-                className="text-base font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                className="text-base font-semibold shadow-lg hover:shadow-xl transition-shadow bg-[#4CAF50] hover:bg-[#45a049] text-white"
                 onClick={() => navigate('/book-appointment')}
               >
                 Book Appointment
@@ -52,7 +52,7 @@ const HeroSection = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="text-base font-semibold"
+                className="text-base font-semibold border-[#4CAF50] text-[#4CAF50] hover:bg-[#4CAF50] hover:text-white"
                 onClick={() => navigate('/register')}
               >
                 Register Now
