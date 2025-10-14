@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, QrCode } from "lucide-react";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center px-4 py-20 overflow-hidden">
       {/* Gradient Background */}
@@ -39,10 +42,19 @@ const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="text-base font-semibold shadow-lg hover:shadow-xl transition-shadow">
+              <Button 
+                size="lg" 
+                className="text-base font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                onClick={() => navigate('/book-appointment')}
+              >
                 Book Appointment
               </Button>
-              <Button size="lg" variant="outline" className="text-base font-semibold">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-base font-semibold"
+                onClick={() => navigate('/register')}
+              >
                 Register Now
               </Button>
             </div>
