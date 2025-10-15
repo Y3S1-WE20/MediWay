@@ -28,9 +28,16 @@ export const endpoints = {
   getDoctorsBySpecialization: (specialization) => `${DOCTORS}/specialization/${specialization}`,
   
   // Payments
-  getPayments: `${PAYMENTS}`,
-  createPayment: `${PAYMENTS}`,
-  getUnpaidBills: `${PAYMENTS}/unpaid`,
+  paymentHealth: `${PAYMENTS}/health`,
+  createPayment: `${PAYMENTS}/create`,
+  executePayment: `${PAYMENTS}/execute`,
+  cancelPayment: `${PAYMENTS}/cancel`,
+  getPayment: (id) => `${PAYMENTS}/${id}`,
+  getMyPayments: `${PAYMENTS}/my-payments`,
+  getAppointmentPayments: (appointmentId) => `${PAYMENTS}/appointment/${appointmentId}`,
+  getReceiptByPayment: (paymentId) => `${PAYMENTS}/receipt/payment/${paymentId}`,
+  getReceiptByNumber: (receiptNumber) => `${PAYMENTS}/receipt/${receiptNumber}`,
+  getMyReceipts: `${PAYMENTS}/receipts/my-receipts`,
   
   // Reports
   getReports: `${REPORTS}`,
