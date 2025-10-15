@@ -39,6 +39,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('mediway_user', JSON.stringify(updatedUser));
   };
 
+  const isAdmin = () => user?.role === 'ADMIN';
+  const isDoctor = () => user?.role === 'DOCTOR';
+  const isPatient = () => user?.role === 'PATIENT';
+
   const value = {
     user,
     token,
@@ -46,6 +50,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     isAuthenticated: !!token,
+    isAdmin,
+    isDoctor,
+    isPatient,
     loading
   };
 
