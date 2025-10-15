@@ -3,6 +3,9 @@ package com.mediway.backend.controller;
 import com.mediway.backend.dto.request.AppointmentRequest;
 import com.mediway.backend.dto.response.AppointmentResponse;
 import com.mediway.backend.dto.response.DoctorResponse;
+import com.mediway.backend.entity.User;
+import com.mediway.backend.exception.ResourceNotFoundException;
+import com.mediway.backend.repository.UserRepository;
 import com.mediway.backend.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ import java.util.UUID;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final UserRepository userRepository;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
@@ -33,7 +37,7 @@ public class AppointmentController {
             Authentication authentication) {
         
         log.info("Creating appointment for user: {}", authentication.getName());
-        UUID patientId = UUID.fromString(authentication.getName());
+        UUID patientId = getUserIdFromAuthentication(authentication);
         
         AppointmentResponse response = appointmentService.createAppointment(patientId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -43,7 +47,7 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
     public ResponseEntity<List<AppointmentResponse>> getMyAppointments(Authentication authentication) {
         log.info("Fetching appointments for user: {}", authentication.getName());
-        UUID patientId = UUID.fromString(authentication.getName());
+        UUID patientId = getUserIdFromAuthentication(authentication);
         
         List<AppointmentResponse> appointments = appointmentService.getMyAppointments(patientId);
         return ResponseEntity.ok(appointments);
@@ -86,7 +90,7 @@ public class AppointmentController {
             Authentication authentication) {
         
         log.info("Cancelling appointment: {}", appointmentId);
-        UUID patientId = UUID.fromString(authentication.getName());
+        UUID patientId = getUserIdFromAuthentication(authentication);
         
         appointmentService.cancelAppointment(appointmentId, patientId);
         return ResponseEntity.noContent().build();
@@ -104,5 +108,15 @@ public class AppointmentController {
         log.info("Fetching doctor with ID: {}", doctorId);
         DoctorResponse doctor = appointmentService.getDoctorById(doctorId);
         return ResponseEntity.ok(doctor);
+    }
+
+    /**
+     * Helper method to extract user ID from authentication
+     */
+    private UUID getUserIdFromAuthentication(Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        return user.getUserId();
     }
 }

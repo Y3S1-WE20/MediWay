@@ -26,10 +26,13 @@ const Appointments = () => {
     setError(null);
     try {
       const response = await api.get(endpoints.getMyAppointments);
+      console.log('Appointments response:', response.data);
       setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
-      setError('Failed to load appointments. Please try again.');
+      console.error('Error details:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load appointments. Please try again.';
+      setError(`Failed to load appointments: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
