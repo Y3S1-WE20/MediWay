@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Plus, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -15,6 +15,7 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAppointments();
@@ -22,48 +23,14 @@ const Appointments = () => {
 
   const fetchAppointments = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API call - replace with actual API
-      const mockAppointments = [
-        {
-          id: 1,
-          doctorName: 'Dr. Sarah Johnson',
-          specialization: 'Cardiologist',
-          date: '2025-10-20',
-          time: '10:00 AM',
-          status: 'confirmed',
-          hospital: 'City Hospital',
-        },
-        {
-          id: 2,
-          doctorName: 'Dr. Michael Chen',
-          specialization: 'Dermatologist',
-          date: '2025-10-18',
-          time: '2:30 PM',
-          status: 'pending',
-          hospital: 'Medical Center',
-        },
-        {
-          id: 3,
-          doctorName: 'Dr. Emily Davis',
-          specialization: 'General Physician',
-          date: '2025-10-10',
-          time: '9:00 AM',
-          status: 'completed',
-          hospital: 'Community Clinic',
-        },
-      ];
-
-      setTimeout(() => {
-        setAppointments(mockAppointments);
-        setLoading(false);
-      }, 800);
-
-      // In production, use:
-      // const response = await api.get(endpoints.getAppointments);
-      // setAppointments(response.data);
+      const response = await api.get(endpoints.getMyAppointments);
+      setAppointments(response.data);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      setError('Failed to load appointments. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -75,42 +42,59 @@ const Appointments = () => {
 
     setCancelingId(id);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In production, use:
-      // await api.delete(endpoints.cancelAppointment(id));
-
-      setAppointments(prev => prev.filter(apt => apt.id !== id));
+      await api.delete(endpoints.cancelAppointment(id));
+      await fetchAppointments(); // Refresh the list
     } catch (error) {
+      console.error('Error canceling appointment:', error);
       alert('Failed to cancel appointment. Please try again.');
     } finally {
       setCancelingId(null);
     }
   };
 
+  const handlePayNow = async (appointment) => {
+    try {
+      const paymentData = {
+        amount: appointment.consultationFee,
+        currency: 'USD',
+        description: `Consultation with ${appointment.doctorName} on ${new Date(appointment.appointmentDate).toLocaleDateString()}`,
+        paymentMethod: 'PAYPAL',
+        returnUrl: `${window.location.origin}/payment-success?appointment=${appointment.appointmentId}`,
+        cancelUrl: `${window.location.origin}/payment-cancel?appointment=${appointment.appointmentId}`
+      };
+
+      const response = await api.post(endpoints.createPayment, paymentData);
+      sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
+      sessionStorage.setItem('pendingAppointmentId', appointment.appointmentId);
+      window.location.href = response.data.approvalUrl;
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      alert('Failed to initiate payment. Please try again.');
+    }
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'completed':
-        return 'info';
-      case 'cancelled':
-        return 'danger';
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED':
+        return 'bg-green-100 text-green-800';
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'COMPLETED':
+        return 'bg-blue-100 text-blue-800';
+      case 'CANCELLED':
+        return 'bg-red-100 text-red-800';
       default:
-        return 'default';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'confirmed':
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED':
         return <CheckCircle className="w-4 h-4" />;
-      case 'pending':
+      case 'PENDING':
         return <Clock className="w-4 h-4" />;
-      case 'completed':
+      case 'COMPLETED':
         return <CheckCircle className="w-4 h-4" />;
       default:
         return <AlertCircle className="w-4 h-4" />;
@@ -157,6 +141,16 @@ const Appointments = () => {
           </div>
         </motion.div>
 
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Appointments List */}
         {appointments.length === 0 ? (
           <motion.div
@@ -182,7 +176,7 @@ const Appointments = () => {
           <div className="grid gap-6">
             {appointments.map((appointment, index) => (
               <motion.div
-                key={appointment.id}
+                key={appointment.appointmentId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -198,19 +192,26 @@ const Appointments = () => {
                               {appointment.doctorName}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              {appointment.specialization} • {appointment.hospital}
+                              {appointment.doctorSpecialization}
                             </p>
+                            {appointment.reason && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                Reason: {appointment.reason}
+                              </p>
+                            )}
                           </div>
-                          <Badge variant={getStatusColor(appointment.status)} className="flex items-center gap-1">
-                            {getStatusIcon(appointment.status)}
-                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          <Badge className={getStatusColor(appointment.status)}>
+                            <span className="flex items-center gap-1">
+                              {getStatusIcon(appointment.status)}
+                              {appointment.status}
+                            </span>
                           </Badge>
                         </div>
 
                         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-[#4CAF50]" />
-                            <span>{new Date(appointment.date).toLocaleDateString('en-US', { 
+                            <span>{new Date(appointment.appointmentDate).toLocaleDateString('en-US', { 
                               weekday: 'short', 
                               year: 'numeric', 
                               month: 'short', 
@@ -219,29 +220,38 @@ const Appointments = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-[#4CAF50]" />
-                            <span>{appointment.time}</span>
+                            <span>{appointment.appointmentTime}</span>
                           </div>
+                          {appointment.consultationFee && (
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-4 h-4 text-[#4CAF50]" />
+                              <span className="font-semibold">${appointment.consultationFee.toFixed(2)}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Actions */}
-                      {appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
-                        <div className="flex gap-2">
+                      {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+                        <div className="flex flex-col gap-2">
+                          {appointment.consultationFee && appointment.status === 'PENDING' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handlePayNow(appointment)}
+                              className="bg-[#4CAF50] hover:bg-[#45a049]"
+                            >
+                              <CreditCard className="w-4 h-4 mr-2" />
+                              Pay Now (${appointment.consultationFee.toFixed(2)})
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigate(`/appointments/${appointment.id}/reschedule`)}
+                            onClick={() => handleCancelAppointment(appointment.appointmentId)}
+                            disabled={cancelingId === appointment.appointmentId}
+                            className="text-red-600 hover:bg-red-50 border-red-200"
                           >
-                            Reschedule
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCancelAppointment(appointment.id)}
-                            disabled={cancelingId === appointment.id}
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            {cancelingId === appointment.id ? (
+                            {cancelingId === appointment.appointmentId ? (
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}

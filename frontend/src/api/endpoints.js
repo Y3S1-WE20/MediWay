@@ -19,12 +19,16 @@ export const endpoints = {
   
   // Appointments
   getAppointments: `${APPOINTMENTS}`,
+  getMyAppointments: `${APPOINTMENTS}/my`,
   createAppointment: `${APPOINTMENTS}`,
   cancelAppointment: (id) => `${APPOINTMENTS}/${id}`,
+  getAppointmentById: (id) => `${APPOINTMENTS}/${id}`,
+  updateAppointmentStatus: (id) => `${APPOINTMENTS}/${id}/status`,
   getAvailableSlots: `${APPOINTMENTS}/slots`,
   
   // Doctors
-  getDoctors: `${DOCTORS}`,
+  getDoctors: `${APPOINTMENTS}/doctors`,
+  getDoctorById: (id) => `${APPOINTMENTS}/doctors/${id}`,
   getDoctorsBySpecialization: (specialization) => `${DOCTORS}/specialization/${specialization}`,
   
   // Payments
