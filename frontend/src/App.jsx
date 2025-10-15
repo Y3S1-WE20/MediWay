@@ -14,6 +14,8 @@ import BookAppointment from './pages/BookAppointment';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import DoctorDashboard from './pages/DoctorDashboard';
 
 import './App.css';
 
@@ -30,6 +32,22 @@ function App() {
             <Route path="/login" element={<Login />} />
 
             {/* Protected Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DoctorDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/appointments"
               element={

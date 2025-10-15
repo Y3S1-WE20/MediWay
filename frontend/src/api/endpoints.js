@@ -10,7 +10,8 @@ export const AUTH = '/auth';
 export const endpoints = {
   // Auth
   login: `${AUTH}/login`,
-  register: `${PATIENTS}/register`,
+  register: `${AUTH}/register`,
+  authHealth: `${AUTH}/health`,
   
   // Patients
   getProfile: (id) => `${PATIENTS}/${id}`,

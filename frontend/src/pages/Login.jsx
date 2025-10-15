@@ -13,6 +13,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState('patient'); // 'patient' or 'admin'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -51,36 +52,38 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Simulate API call - replace with actual API
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            data: {
-              success: true,
-              token: 'mock-jwt-token-' + Date.now(),
-              user: {
-                id: 'P12345',
-                name: 'John Doe',
-                email: formData.email,
-                phone: '1234567890',
-                dateOfBirth: '1990-01-01',
-                gender: 'male',
-              },
-            },
-          });
-        }, 1500);
+      // Call backend API
+      const response = await api.post(endpoints.login, {
+        email: formData.email,
+        password: formData.password,
       });
 
-      // In production, use:
-      // const response = await api.post(endpoints.login, {
-      //   email: formData.email,
-      //   password: formData.password,
-      // });
+      const { token, userId, fullName, email, role, tokenType } = response.data;
+      
+      // Create user object
+      const userData = {
+        id: userId,
+        name: fullName,
+        email: email,
+        role: role, // ADMIN, DOCTOR, or PATIENT
+      };
 
-      login(response.data.user, response.data.token);
-      navigate('/appointments');
+      // Store token and user data
+      login(userData, token);
+      
+      // Navigate based on role
+      if (role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (role === 'DOCTOR') {
+        navigate('/doctor/dashboard');
+      } else {
+        navigate('/appointments');
+      }
     } catch (error) {
-      setErrors({ submit: error.response?.data?.message || 'Invalid credentials. Please try again.' });
+      console.error('Login error:', error);
+      setErrors({ 
+        submit: error.response?.data?.message || 'Invalid credentials. Please try again.' 
+      });
     } finally {
       setLoading(false);
     }
@@ -112,6 +115,32 @@ const Login = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Login Mode Toggle */}
+            <div className="flex gap-2 mb-6">
+              <Button
+                type="button"
+                onClick={() => setLoginMode('patient')}
+                className={`flex-1 ${
+                  loginMode === 'patient'
+                    ? 'bg-[#4CAF50] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Patient/Doctor Login
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setLoginMode('admin')}
+                className={`flex-1 ${
+                  loginMode === 'admin'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Admin Login
+              </Button>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
                 label="Email Address"
@@ -203,10 +232,23 @@ const Login = () => {
           transition={{ delay: 0.5 }}
           className="mt-6 text-center"
         >
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 font-medium">Demo Mode</p>
-            <p className="text-xs text-blue-700 mt-1">
-              Enter any email and password to login
+          <div className={`border rounded-lg p-4 ${
+            loginMode === 'admin' 
+              ? 'bg-blue-50 border-blue-200' 
+              : 'bg-green-50 border-green-200'
+          }`}>
+            <p className={`text-sm font-medium ${
+              loginMode === 'admin' ? 'text-blue-800' : 'text-green-800'
+            }`}>
+              {loginMode === 'admin' ? 'Admin Login' : 'Patient/Doctor Login'}
+            </p>
+            <p className={`text-xs mt-1 ${
+              loginMode === 'admin' ? 'text-blue-700' : 'text-green-700'
+            }`}>
+              {loginMode === 'admin' 
+                ? 'Use your admin credentials to access the admin dashboard'
+                : 'Register first if you don\'t have an account'
+              }
             </p>
           </div>
         </motion.div>

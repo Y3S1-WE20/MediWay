@@ -12,14 +12,13 @@ import { endpoints } from '../api/endpoints';
 const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [showQR, setShowQR] = useState(false);
-  const [qrData, setQrData] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    dateOfBirth: '',
-    gender: '',
+    role: 'PATIENT', // PATIENT or DOCTOR
     password: '',
     confirmPassword: '',
   });
@@ -36,7 +35,7 @@ const Register = () => {
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.name.trim()) newErrors.name = 'Full name is required';
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -47,8 +46,7 @@ const Register = () => {
     } else if (!/^\d{10}$/.test(formData.phone.replace(/[-\s]/g, ''))) {
       newErrors.phone = 'Phone must be 10 digits';
     }
-    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-    if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (!formData.role) newErrors.role = 'Please select a role';
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -70,46 +68,36 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Simulate API call - replace with actual API
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            data: {
-              success: true,
-              patient: {
-                id: 'P' + Date.now(),
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                dateOfBirth: formData.dateOfBirth,
-                gender: formData.gender,
-              },
-              message: 'Registration successful! Your health card has been generated.',
-            },
-          });
-        }, 1500);
+      // Call backend API
+      const response = await api.post(endpoints.register, {
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role,
+        password: formData.password,
       });
 
-      // In production, use:
-      // const response = await api.post(endpoints.register, {
-      //   name: formData.name,
-      //   email: formData.email,
-      //   phone: formData.phone,
-      //   dateOfBirth: formData.dateOfBirth,
-      //   gender: formData.gender,
-      //   password: formData.password,
-      // });
-
-      setQrData(response.data.patient);
-      setShowQR(true);
+      const { userId, fullName, email, role } = response.data;
+      
+      setRegisteredUser({
+        id: userId,
+        name: fullName,
+        email: email,
+        role: role,
+      });
+      
+      setShowSuccess(true);
     } catch (error) {
-      setErrors({ submit: error.response?.data?.message || 'Registration failed. Please try again.' });
+      console.error('Registration error:', error);
+      setErrors({ 
+        submit: error.response?.data?.message || 'Registration failed. Please try again.' 
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (showQR && qrData) {
+  if (showSuccess && registeredUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#4CAF50]/5 via-white to-[#4CAF50]/10 flex items-center justify-center px-4 py-20">
         <motion.div
@@ -132,31 +120,30 @@ const Register = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-gray-600">
-                Your MediWay health card has been generated successfully.
+                Welcome to MediWay! Your account has been created successfully.
               </p>
               
-              {/* QR Code Placeholder */}
+              {/* User Info */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white p-6 rounded-lg border-2 border-dashed border-gray-300"
+                className="bg-green-50 p-6 rounded-lg border border-green-200"
               >
-                <div className="w-48 h-48 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <QrCode className="w-24 h-24 mx-auto text-gray-400 mb-2" />
-                    <p className="text-xs text-gray-500">QR Code Preview</p>
-                    <p className="text-xs text-gray-400 mt-1">ID: {qrData.id}</p>
-                  </div>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-semibold">User ID:</span> {registeredUser.id}</p>
+                  <p><span className="font-semibold">Name:</span> {registeredUser.name}</p>
+                  <p><span className="font-semibold">Email:</span> {registeredUser.email}</p>
+                  <p><span className="font-semibold">Role:</span> {registeredUser.role}</p>
                 </div>
               </motion.div>
 
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <p className="text-sm text-green-800 font-medium">
-                  Welcome, {qrData.name}!
+                  Welcome, {registeredUser.name}!
                 </p>
                 <p className="text-xs text-green-700 mt-1">
-                  Save this QR code for quick access to your health records.
+                  You can now login with your credentials.
                 </p>
               </div>
 
@@ -166,13 +153,6 @@ const Register = () => {
                   className="w-full bg-[#4CAF50] hover:bg-[#45a049]"
                 >
                   Continue to Login
-                </Button>
-                <Button
-                  onClick={() => window.print()}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Print Health Card
                 </Button>
               </div>
             </CardContent>
@@ -244,31 +224,18 @@ const Register = () => {
                 />
               </div>
 
-              {/* DOB & Gender */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <Input
-                  label="Date of Birth"
-                  name="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  error={errors.dateOfBirth}
-                  required
-                />
-                <Select
-                  label="Gender"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  error={errors.gender}
-                  required
-                >
-                  <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </Select>
-              </div>
+              {/* Role Selection */}
+              <Select
+                label="Register as"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                error={errors.role}
+                required
+              >
+                <option value="PATIENT">Patient</option>
+                <option value="DOCTOR">Doctor</option>
+              </Select>
 
               {/* Password */}
               <div className="grid md:grid-cols-2 gap-4">
