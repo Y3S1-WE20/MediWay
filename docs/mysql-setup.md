@@ -16,7 +16,7 @@ This document explains how to install MySQL Server and MySQL Workbench on Window
 
 ```sql
 CREATE DATABASE mediwaydb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'mediway_user'@'localhost' IDENTIFIED BY 'StrongPasswordHere!';
+CREATE USER 'mediway_user'@'localhost' IDENTIFIED BY 'admin';
 GRANT ALL PRIVILEGES ON mediwaydb.* TO 'mediway_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
