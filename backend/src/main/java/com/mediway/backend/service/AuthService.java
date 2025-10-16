@@ -27,6 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final QRCodeService qrCodeService;
 
     /**
      * Register a new user
@@ -50,8 +51,22 @@ public class AuthService {
                 .isActive(true)
                 .build();
 
-        // Save user to database
+        // Save user to database first to get the generated userId
         User savedUser = userRepository.save(user);
+        
+        // Generate QR code for PATIENT role
+        if (savedUser.getRole() == User.Role.PATIENT) {
+            try {
+                String qrCodeData = qrCodeService.generateQRCodeData(savedUser.getUserId(), savedUser.getEmail());
+                savedUser.setQrCode(qrCodeData);
+                savedUser = userRepository.save(savedUser);
+                log.info("QR code generated for patient: {}", savedUser.getEmail());
+            } catch (Exception e) {
+                log.error("Failed to generate QR code for patient: {}", savedUser.getEmail(), e);
+                // Continue without QR code - it can be generated later
+            }
+        }
+        
         log.info("User registered successfully with ID: {}", savedUser.getUserId());
 
         // Generate JWT token

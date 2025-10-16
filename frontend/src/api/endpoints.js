@@ -5,6 +5,7 @@ export const PAYMENTS = '/payments';
 export const REPORTS = '/reports';
 export const DOCTORS = '/doctors';
 export const AUTH = '/auth';
+export const PROFILE = '/profile';
 
 // Specific endpoints
 export const endpoints = {
@@ -13,9 +14,15 @@ export const endpoints = {
   register: `${AUTH}/register`,
   authHealth: `${AUTH}/health`,
   
+  // Profile
+  getProfile: `${PROFILE}`,
+  updateProfile: `${PROFILE}`,
+  getQRCode: `${PROFILE}/qrcode`,
+  verifyQRCode: `${PROFILE}/verify-qr`,
+  
   // Patients
-  getProfile: (id) => `${PATIENTS}/${id}`,
-  updateProfile: (id) => `${PATIENTS}/${id}`,
+  getPatientProfile: (id) => `${PATIENTS}/${id}`,
+  updatePatientProfile: (id) => `${PATIENTS}/${id}`,
   
   // Appointments
   getAppointments: `${APPOINTMENTS}`,
@@ -44,7 +51,18 @@ export const endpoints = {
   getMyReceipts: `${PAYMENTS}/receipts/my-receipts`,
   
   // Reports
-  getReports: `${REPORTS}`,
-  getPatientStats: `${REPORTS}/patient-stats`,
-  getAppointmentStats: `${REPORTS}/appointment-stats`,
+  getReportSummary: `${REPORTS}/summary`,
+  getComprehensiveReport: `${REPORTS}/patient/comprehensive`,
+  getMedicalRecords: `${REPORTS}/medical-records`,
+  getMedicalRecord: (id) => `${REPORTS}/medical-records/${id}`,
+  createMedicalRecord: `${REPORTS}/medical-records`,
+  getPrescriptions: `${REPORTS}/prescriptions`,
+  getPrescription: (id) => `${REPORTS}/prescriptions/${id}`,
+  createPrescription: `${REPORTS}/prescriptions`,
+  updatePrescriptionStatus: (id) => `${REPORTS}/prescriptions/${id}/status`,
+  getLabResults: `${REPORTS}/lab-results`,
+  getLabResult: (id) => `${REPORTS}/lab-results/${id}`,
+  createLabResult: `${REPORTS}/lab-results`,
+  updateLabResultStatus: (id) => `${REPORTS}/lab-results/${id}/status`,
 };
+

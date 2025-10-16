@@ -56,6 +56,9 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "qr_code", length = 500)
+    private String qrCode; // Stores the unique QR code data for patient identification
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

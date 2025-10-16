@@ -1,27 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Users, Calendar, TrendingUp, Download } from 'lucide-react';
+import { FileText, Activity, Pill, FlaskConical, Calendar, Download, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { Badge } from '../components/ui/badge';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/api';
 
 const Reports = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [labResults, setLabResults] = useState([]);
+  const [activeTab, setActiveTab] = useState('summary');
 
   useEffect(() => {
     fetchReports();
@@ -30,52 +23,27 @@ const Reports = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      const mockStats = {
-        totalPatients: 1247,
-        totalAppointments: 3856,
-        totalRevenue: 458900,
-        growthRate: 12.5,
-      };
+      // Fetch summary
+      const summaryResponse = await api.get('/reports/summary');
+      setSummary(summaryResponse.data);
 
-      setTimeout(() => {
-        setStats(mockStats);
-        setLoading(false);
-      }, 800);
+      // Fetch medical records
+      const recordsResponse = await api.get('/reports/medical-records');
+      setMedicalRecords(recordsResponse.data);
+
+      // Fetch prescriptions
+      const prescriptionsResponse = await api.get('/reports/prescriptions');
+      setPrescriptions(prescriptionsResponse.data);
+
+      // Fetch lab results
+      const labResponse = await api.get('/reports/lab-results');
+      setLabResults(labResponse.data);
     } catch (error) {
       console.error('Error fetching reports:', error);
+    } finally {
       setLoading(false);
     }
   };
-
-  // Sample data for charts
-  const appointmentData = [
-    { month: 'Jan', appointments: 320 },
-    { month: 'Feb', appointments: 380 },
-    { month: 'Mar', appointments: 420 },
-    { month: 'Apr', appointments: 390 },
-    { month: 'May', appointments: 480 },
-    { month: 'Jun', appointments: 520 },
-  ];
-
-  const specializationData = [
-    { name: 'Cardiology', value: 450 },
-    { name: 'Dermatology', value: 320 },
-    { name: 'General', value: 580 },
-    { name: 'Orthopedic', value: 280 },
-    { name: 'Pediatric', value: 390 },
-  ];
-
-  const revenueData = [
-    { month: 'Jan', revenue: 65000 },
-    { month: 'Feb', revenue: 72000 },
-    { month: 'Mar', revenue: 78000 },
-    { month: 'Apr', revenue: 71000 },
-    { month: 'May', revenue: 85000 },
-    { month: 'Jun', revenue: 92000 },
-  ];
-
-  const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0'];
 
   if (loading) {
     return (

@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Check if Authorization header is present and starts with "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.debug("No Authorization header or not Bearer for request: " + request.getRequestURI() + ". Header present: " + (authHeader != null));
             filterChain.doFilter(request, response);
             return;
         }
@@ -66,6 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     // Set authentication in security context
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    logger.warn("JWT validation failed for user " + userEmail + " on request " + request.getRequestURI());
                 }
             }
         } catch (Exception e) {

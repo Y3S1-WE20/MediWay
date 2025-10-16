@@ -1,24 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Calendar, QrCode, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Phone, Calendar, QrCode, Edit2, Save, X, Download } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/api';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    gender: user?.gender || '',
+    fullName: '',
+    phone: '',
   });
+
+  useEffect(() => {
+    fetchProfile();
+    if (user?.role === 'PATIENT') {
+      fetchQRCode();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await api.get('/profile');
+      setProfile(response.data);
+      setFormData({
+        fullName: response.data.fullName || '',
+        phone: response.data.phone || '',
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchQRCode = async () => {
+    try {
+      const response = await api.get('/profile/qrcode');
+      setQrCode(response.data);
+    } catch (error) {
+      console.error('Error fetching QR code:', error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,15 +60,13 @@ const Profile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In production, use:
-      // await api.put(endpoints.updateProfile(user.id), formData);
-
-      updateUser(formData);
+      const response = await api.put('/profile', formData);
+      setProfile(response.data);
+      updateUser({ ...user, fullName: response.data.fullName, phone: response.data.phone });
       setIsEditing(false);
+      alert('Profile updated successfully!');
     } catch (error) {
+      console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
@@ -45,14 +75,31 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      gender: user?.gender || '',
+      fullName: profile?.fullName || '',
+      phone: profile?.phone || '',
     });
     setIsEditing(false);
   };
+
+  const downloadQRCode = () => {
+    if (qrCode && qrCode.qrCodeImage) {
+      const link = document.createElement('a');
+      link.href = qrCode.qrCodeImage;
+      link.download = `mediway-qr-${profile?.fullName?.replace(/\s+/g, '-')}.png`;
+      link.click();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4CAF50] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
@@ -97,39 +144,59 @@ const Profile = () => {
 
                   <div>
                     <h3 className="text-xl font-bold text-gray-800">
-                      {user?.name}
+                      {profile?.fullName || user?.fullName}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Patient ID: {user?.id || 'P12345'}
+                      Patient ID: {profile?.userId?.substring(0, 8) || 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {profile?.role}
                     </p>
                   </div>
 
                   {/* QR Code */}
-                  <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300">
-                    <div className="w-48 h-48 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <QrCode className="w-32 h-32 mx-auto text-gray-400 mb-2" />
-                        <p className="text-xs text-gray-500">Scan for quick access</p>
-                      </div>
+                  {user?.role === 'PATIENT' && (
+                    <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300">
+                      {qrCode && qrCode.qrCodeImage ? (
+                        <div className="w-48 h-48 mx-auto">
+                          <img 
+                            src={qrCode.qrCodeImage} 
+                            alt="Patient QR Code" 
+                            className="w-full h-full object-contain"
+                          />
+                          <p className="text-xs text-gray-500 mt-2 text-center">Scan for quick access</p>
+                        </div>
+                      ) : (
+                        <div className="w-48 h-48 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                          <div className="text-center">
+                            <QrCode className="w-32 h-32 mx-auto text-gray-400 mb-2" />
+                            <p className="text-xs text-gray-500">Loading QR Code...</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => window.print()}
-                    >
-                      <QrCode className="w-4 h-4 mr-2" />
-                      Print Card
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                    >
-                      Download QR
-                    </Button>
-                  </div>
+                  {user?.role === 'PATIENT' && qrCode && (
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => window.print()}
+                      >
+                        <QrCode className="w-4 h-4 mr-2" />
+                        Print Card
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={downloadQRCode}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download QR
+                      </Button>
+                    </div>
+                  )}
 
                   <Badge variant="success" className="w-full justify-center">
                     Active Member
