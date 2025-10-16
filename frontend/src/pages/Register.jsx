@@ -89,8 +89,28 @@ const Register = () => {
       setShowSuccess(true);
     } catch (error) {
       console.error('Registration error:', error);
-      setErrors({ 
-        submit: error.response?.data?.message || 'Registration failed. Please try again.' 
+
+      // Prefer backend's structured error message (ErrorResponse.message).
+      // If validation details are present, join them into a readable string.
+      const resp = error.response?.data;
+      const status = error.response?.status;
+      let serverMessage = null;
+
+      if (resp) {
+        if (resp.message) {
+          serverMessage = resp.message;
+        } else if (resp.error) {
+          serverMessage = resp.error;
+        } else if (resp.details && typeof resp.details === 'object') {
+          // details is a map of field -> message
+          serverMessage = Object.values(resp.details).join('; ');
+        }
+      }
+
+      setErrors({
+        submit: serverMessage
+          ? `${serverMessage}${status ? ` (status ${status})` : ''}`
+          : (error.message || 'Registration failed. Please try again.'),
       });
     } finally {
       setLoading(false);
