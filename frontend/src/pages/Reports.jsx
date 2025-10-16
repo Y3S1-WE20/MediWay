@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Activity, Pill, FlaskConical, Calendar, Download, AlertCircle } from 'lucide-react';
+import { FileText, Activity, Pill, FlaskConical, Calendar, Download, AlertCircle, Users, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
