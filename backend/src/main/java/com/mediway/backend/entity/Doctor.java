@@ -24,8 +24,7 @@ import java.util.UUID;
 public class Doctor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "doctor_id", updatable = false, nullable = false)
+    @Column(name = "doctor_id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
     private UUID doctorId;
 
     @Column(name = "name", nullable = false, length = 100)

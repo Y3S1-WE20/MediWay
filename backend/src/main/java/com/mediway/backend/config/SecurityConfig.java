@@ -40,7 +40,6 @@ public class SecurityConfig {
             // Allow fetching doctors list without authentication
             .requestMatchers("/appointments/doctors", "/appointments/doctors/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/payments/health").permitAll()
                         
@@ -58,9 +57,6 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // Allow H2 console to be accessed (for development only)
-        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
