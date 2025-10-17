@@ -11,6 +11,8 @@ import { Select } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api/api';
+import SmartHealthCard from '../components/SmartHealthCard';
+import Lanyard from '../components/Lanyard';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
@@ -377,6 +379,36 @@ const Profile = () => {
                                                     </CardContent>
                                                   </Card>
                                                 )}
+
+                                                {/* Smart Health Card Section (for patients) */}
+                                                {user?.role === 'PATIENT' && (
+                                                  <Card className="mt-2 p-6 shadow-lg border-2 border-teal-200">
+                                                    <CardHeader>
+                                                      <CardTitle className="text-2xl font-bold text-teal-700 mb-2">Smart Health Card</CardTitle>
+                                                      <p className="text-gray-600 text-base mb-2">Your digital health ID card with QR code for easy access at healthcare facilities</p>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                      <SmartHealthCard
+                                                        patient={{
+                                                          name: profile?.name || 'Not Set',
+                                                          dob: profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric'
+                                                          }) : 'Not Set',
+                                                          bloodGroup: profile?.bloodType || 'Not Set',
+                                                          email: profile?.email || 'Not Set',
+                                                          phone: profile?.phone || 'Not Set',
+                                                          uuid: profile?.id ? `PAT-${String(profile.id).padStart(6, '0')}` : 'N/A'
+                                                        }}
+                                                      />
+                                                    </CardContent>
+                                                  </Card>
+                                                )}
+
+                                                {/* Interactive Health Card Lanyard (for patients) */}
+                                                {/* Interactive Health Card section removed as requested */}
+
                                                 {/* Basic Information */}
                                                 <Card>
                                                   <CardHeader>
