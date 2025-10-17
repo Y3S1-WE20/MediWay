@@ -1,15 +1,21 @@
 package com.mediway.backend.controller;
 
 import com.mediway.backend.entity.Appointment;
+import com.mediway.backend.entity.Doctor;
+import com.mediway.backend.entity.User;
 import com.mediway.backend.repository.AppointmentRepository;
+import com.mediway.backend.repository.DoctorRepository;
+import com.mediway.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/appointments")
@@ -18,25 +24,72 @@ public class SimpleAppointmentController {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
+    
+    @Autowired
+    private DoctorRepository doctorRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+
+    // Helper method to convert Appointment to detailed response
+    private Map<String, Object> appointmentToMap(Appointment appointment) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("appointmentId", appointment.getId());
+        map.put("id", appointment.getId());
+        map.put("appointmentDate", appointment.getAppointmentDate().toString());
+        map.put("status", appointment.getStatus().toString());
+        map.put("notes", appointment.getNotes());
+        map.put("reason", appointment.getNotes());
+        
+        // Add doctor details
+        doctorRepository.findById(appointment.getDoctorId()).ifPresent(doctor -> {
+            map.put("doctorId", doctor.getId());
+            map.put("doctorName", doctor.getName());
+            map.put("doctorSpecialization", doctor.getSpecialization());
+            map.put("doctorEmail", doctor.getEmail());
+            map.put("doctorPhone", doctor.getPhone());
+        });
+        
+        // Add patient details
+        userRepository.findById(appointment.getPatientId()).ifPresent(patient -> {
+            map.put("patientId", patient.getId());
+            map.put("patientName", patient.getName());
+            map.put("patientEmail", patient.getEmail());
+            map.put("patientPhone", patient.getPhone());
+        });
+        
+        // Add payment info (default for prototype)
+        map.put("consultationFee", 500.00);
+        map.put("paymentStatus", "PENDING");
+        map.put("isPaid", false);
+        
+        return map;
+    }
 
     // Frontend expects appointments at /api/appointments/my
     @GetMapping("/my")
-    public ResponseEntity<List<Appointment>> getMyAppointments() {
-        // For now, return all appointments (since we don't have authentication)
+    public ResponseEntity<?> getMyAppointments() {
+        // For prototype, return all appointments with full details
         List<Appointment> appointments = appointmentRepository.findAll();
-        return ResponseEntity.ok(appointments);
+        List<Map<String, Object>> detailedAppointments = appointments.stream()
+                .map(this::appointmentToMap)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(detailedAppointments);
     }
 
     @GetMapping
-    public ResponseEntity<List<Appointment>> getAllAppointments() {
+    public ResponseEntity<?> getAllAppointments() {
         List<Appointment> appointments = appointmentRepository.findAll();
-        return ResponseEntity.ok(appointments);
+        List<Map<String, Object>> detailedAppointments = appointments.stream()
+                .map(this::appointmentToMap)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(detailedAppointments);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
+    public ResponseEntity<?> getAppointmentById(@PathVariable Long id) {
         return appointmentRepository.findById(id)
-                .map(appointment -> ResponseEntity.ok(appointment))
+                .map(appointment -> ResponseEntity.ok(appointmentToMap(appointment)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -63,7 +116,7 @@ public class SimpleAppointmentController {
             appointment.setStatus(Appointment.Status.SCHEDULED);
             
             Appointment savedAppointment = appointmentRepository.save(appointment);
-            return ResponseEntity.ok(savedAppointment);
+            return ResponseEntity.ok(appointmentToMap(savedAppointment));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
@@ -73,13 +126,14 @@ public class SimpleAppointmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @RequestBody Appointment appointmentDetails) {
+    public ResponseEntity<?> updateAppointment(@PathVariable Long id, @RequestBody Appointment appointmentDetails) {
         return appointmentRepository.findById(id)
                 .map(appointment -> {
                     appointment.setAppointmentDate(appointmentDetails.getAppointmentDate());
                     appointment.setStatus(appointmentDetails.getStatus());
                     appointment.setNotes(appointmentDetails.getNotes());
-                    return ResponseEntity.ok(appointmentRepository.save(appointment));
+                    Appointment updated = appointmentRepository.save(appointment);
+                    return ResponseEntity.ok(appointmentToMap(updated));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
