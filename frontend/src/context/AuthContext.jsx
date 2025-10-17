@@ -9,34 +9,54 @@ export const AuthProvider = ({ children }) => {
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('mediway_token');
-    const storedUser = localStorage.getItem('mediway_user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedToken = localStorage.getItem('mediway_token');
+      const storedUser = localStorage.getItem('mediway_user');
+      
+      if (storedToken && storedUser) {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error('Error loading auth data from localStorage:', error);
+      // Clear corrupted data
+      localStorage.removeItem('mediway_token');
+      localStorage.removeItem('mediway_user');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('mediway_token', authToken);
-    localStorage.setItem('mediway_user', JSON.stringify(userData));
+    try {
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('mediway_token', authToken);
+      localStorage.setItem('mediway_user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error saving auth data to localStorage:', error);
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('mediway_token');
-    localStorage.removeItem('mediway_user');
+    try {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('mediway_token');
+      localStorage.removeItem('mediway_user');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const updateUser = (updatedData) => {
-    const updatedUser = { ...user, ...updatedData };
-    setUser(updatedUser);
-    localStorage.setItem('mediway_user', JSON.stringify(updatedUser));
+    try {
+      const updatedUser = { ...user, ...updatedData };
+      setUser(updatedUser);
+      localStorage.setItem('mediway_user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Error updating user data:', error);
+    }
   };
 
   const isAdmin = () => user?.role === 'ADMIN';

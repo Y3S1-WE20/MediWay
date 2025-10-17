@@ -57,28 +57,14 @@ const Appointments = () => {
 
   const handlePayNow = async (appointment) => {
     try {
-      // Prepare payment request with appointmentId and amount
-      const paymentRequest = {
-        appointmentId: appointment.appointmentId,
-        amount: 50.00 // Default consultation fee - can be made dynamic
-      };
-
-      console.log('Creating payment for appointment:', paymentRequest);
+      // Direct navigation to PayPal checkout page with appointment details
+      const appointmentId = appointment.appointmentId;
+      const amount = 50.00; // Default consultation fee - can be made dynamic
       
-      const response = await api.post('/payments/create', paymentRequest);
+      console.log('Redirecting to PayPal checkout for appointment:', appointmentId);
       
-      console.log('Payment creation response:', response.data);
-      
-      if (response.data.success) {
-        // Store payment info in sessionStorage for success/cancel callbacks
-        sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
-        sessionStorage.setItem('pendingAppointmentId', appointment.appointmentId);
-        
-        // Redirect to PayPal
-        window.location.href = response.data.approvalUrl;
-      } else {
-        alert(response.data.message || 'Failed to create payment');
-      }
+      // Navigate directly to PayPal checkout page
+      navigate(`/paypal-checkout?appointmentId=${appointmentId}&amount=${amount}`);
     } catch (error) {
       console.error('Error creating payment:', error);
       console.error('Error response:', error.response?.data);
