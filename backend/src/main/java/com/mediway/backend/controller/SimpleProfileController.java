@@ -107,7 +107,12 @@ public class SimpleProfileController {
                 user.setPhone((String) request.get("phone"));
             }
             if (request.containsKey("dateOfBirth")) {
-                user.setDateOfBirth(LocalDate.parse((String) request.get("dateOfBirth")));
+                String dobStr = (String) request.get("dateOfBirth");
+                if (dobStr != null && !dobStr.trim().isEmpty()) {
+                    user.setDateOfBirth(LocalDate.parse(dobStr));
+                } else {
+                    user.setDateOfBirth(null);
+                }
             }
             if (request.containsKey("gender")) {
                 user.setGender((String) request.get("gender"));
