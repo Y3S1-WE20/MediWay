@@ -19,7 +19,7 @@ Created comprehensive project README with:
    - Nipuni: Appointment Scheduling (100% coverage)
    - Shirantha: Admin & Reports (91-100% coverage)
    - Navodya: Medical Records (89-97% coverage)
-   - **Shalon: Payment Handling (80%+ coverage) ⭐ IMPROVED** - Added 3 new comprehensive tests + Enhanced Doctor Dashboard UI/UX
+   - Shalon: Payment Handling (80%+ coverage) 
 
 3. **Technology Stack** - Complete backend/frontend/devops stack
 4. **Prerequisites** - All required software
