@@ -1,76 +1,89 @@
 package com.mediway.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Medical Record entity for storing patient medical history
- */
 @Entity
-@Table(name = "medical_records", indexes = {
-    @Index(name = "idx_medical_record_patient", columnList = "patient_id"),
-    @Index(name = "idx_medical_record_doctor", columnList = "doctor_id"),
-    @Index(name = "idx_medical_record_date", columnList = "record_date")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "medical_records")
 public class MedicalRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "record_id", updatable = false, nullable = false)
-    private UUID recordId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "patient_id", nullable = false)
-    private UUID patientId;
+    private Long patientId;
 
     @Column(name = "doctor_id", nullable = false)
-    private UUID doctorId;
+    private Long doctorId;
 
     @Column(name = "appointment_id")
-    private UUID appointmentId;
+    private Long appointmentId;
 
-    @Column(name = "record_date", nullable = false)
-    private LocalDate recordDate;
-
-    @Column(name = "diagnosis", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String diagnosis;
 
-    @Column(name = "symptoms", columnDefinition = "TEXT")
-    private String symptoms;
-
-    @Column(name = "treatment", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String treatment;
 
-    @Column(name = "notes", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
+    private String prescription;
+
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @Column(name = "vital_signs", columnDefinition = "TEXT")
-    private String vitalSigns; // JSON format: {"bloodPressure": "120/80", "temperature": "98.6", ...}
+    @Column(name = "record_date")
+    private LocalDateTime recordDate;
 
-    @Column(name = "follow_up_required")
-    @Builder.Default
-    private Boolean followUpRequired = false;
+    // Default constructor
+    public MedicalRecord() {
+        this.recordDate = LocalDateTime.now();
+    }
 
-    @Column(name = "follow_up_date")
-    private LocalDate followUpDate;
+    // Constructor with parameters
+    public MedicalRecord(Long patientId, Long doctorId, Long appointmentId, String diagnosis, String treatment, String prescription, String notes) {
+        this();
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.appointmentId = appointmentId;
+        this.diagnosis = diagnosis;
+        this.treatment = treatment;
+        this.prescription = prescription;
+        this.notes = notes;
+    }
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    public Long getPatientId() { return patientId; }
+    public void setPatientId(Long patientId) { this.patientId = patientId; }
+
+    public Long getDoctorId() { return doctorId; }
+    public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
+
+    public Long getAppointmentId() { return appointmentId; }
+    public void setAppointmentId(Long appointmentId) { this.appointmentId = appointmentId; }
+
+    public String getDiagnosis() { return diagnosis; }
+    public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
+
+    public String getTreatment() { return treatment; }
+    public void setTreatment(String treatment) { this.treatment = treatment; }
+
+    public String getPrescription() { return prescription; }
+    public void setPrescription(String prescription) { this.prescription = prescription; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public LocalDateTime getRecordDate() { return recordDate; }
+    public void setRecordDate(LocalDateTime recordDate) { this.recordDate = recordDate; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (recordDate == null) {
+            recordDate = LocalDateTime.now();
+        }
+    }
 }

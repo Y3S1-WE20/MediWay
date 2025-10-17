@@ -1,62 +1,77 @@
 package com.mediway.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Doctor entity for appointment booking
- */
 @Entity
 @Table(name = "doctors")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Doctor {
-
     @Id
-    @Column(name = "doctor_id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
-    private UUID doctorId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "specialization", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String specialization;
 
-    @Column(name = "email", unique = true, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "phone", length = 20)
+    @Column(length = 20)
     private String phone;
 
-    @Column(name = "qualification", length = 200)
-    private String qualification;
-
-    @Column(name = "experience_years")
-    private Integer experienceYears;
-
-    @Column(name = "consultation_fee", precision = 10, scale = 2)
-    private java.math.BigDecimal consultationFee;
-
-    @Column(name = "available", nullable = false)
-    @Builder.Default
+    @Column(nullable = false)
     private Boolean available = true;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    // Default constructor
+    public Doctor() {
+        this.available = true;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Constructor with parameters
+    public Doctor(String name, String specialization, String email, String phone) {
+        this();
+        this.name = name;
+        this.specialization = specialization;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getSpecialization() { return specialization; }
+    public void setSpecialization(String specialization) { this.specialization = specialization; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public Boolean getAvailable() { return available; }
+    public void setAvailable(Boolean available) { this.available = available; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (available == null) {
+            available = true;
+        }
+    }
 }

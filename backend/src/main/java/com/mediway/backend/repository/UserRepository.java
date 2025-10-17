@@ -5,10 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * Find user by email
@@ -24,11 +23,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     boolean existsByEmail(String email);
 
-    /**
-     * Find active user by email
-     * @param email user email
-     * @param isActive active status
-     * @return Optional of User
-     */
-    Optional<User> findByEmailAndIsActive(String email, Boolean isActive);
+
 }
