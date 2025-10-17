@@ -102,13 +102,12 @@ public class SimpleAuthController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
-            response.put("token", "simple-token-" + user.getId()); // Simple token for prototype
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "name", user.getName(),
-                "email", user.getEmail(),
-                "role", user.getRole().toString()
-            ));
+            response.put("token", "simple-token-" + user.getId());
+            response.put("userId", user.getId());
+            response.put("fullName", user.getName()); // Use getName() instead of getFullName()
+            response.put("email", user.getEmail());
+            response.put("role", user.getRole().toString());
+            response.put("tokenType", "Bearer");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

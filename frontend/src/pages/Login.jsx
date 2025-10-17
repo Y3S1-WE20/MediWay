@@ -72,11 +72,17 @@ const Login = () => {
       login(userData, token);
       
       // Navigate based on role
+      console.log('User role from login:', role);
+      console.log('User data:', userData);
+      
       if (role === 'ADMIN') {
+        console.log('Redirecting to admin dashboard');
         navigate('/admin/dashboard');
       } else if (role === 'DOCTOR') {
+        console.log('Redirecting to doctor dashboard');
         navigate('/doctor/dashboard');
       } else {
+        console.log('Redirecting to appointments page');
         navigate('/appointments');
       }
     } catch (error) {

@@ -112,6 +112,22 @@
     <artifactId>javase</artifactId>
     <version>3.5.2</version>
 </dependency>
+<!-- iText PDF for receipt generation -->
+<dependency>
+    <groupId>com.itextpdf</groupId>
+    <artifactId>kernel</artifactId>
+    <version>7.2.5</version>
+</dependency>
+<dependency>
+    <groupId>com.itextpdf</groupId>
+    <artifactId>layout</artifactId>
+    <version>7.2.5</version>
+</dependency>
+<dependency>
+    <groupId>com.itextpdf</groupId>
+    <artifactId>io</artifactId>
+    <version>7.2.5</version>
+</dependency>
 	</dependencies>
 
 	<build>
