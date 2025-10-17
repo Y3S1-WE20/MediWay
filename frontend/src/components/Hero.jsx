@@ -28,7 +28,7 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-subtle">
-      {/* Background Image Carousel */}
+  {/* Background Image Carousel */}
       <div className="absolute inset-0 z-0">
         {heroImages.map((image, index) => (
           <div
@@ -44,7 +44,22 @@ const Hero = () => {
             />
           </div>
         ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
+  <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
+  {/* subtle left dark overlay to improve text contrast */}
+  <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
+        {/* white blend overlays to smoothly merge image with page header/sides */}
+        <div
+          className="absolute top-0 left-0 bottom-0 pointer-events-none"
+          style={{ width: '14rem', background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 60%)' }}
+        />
+        <div
+          className="absolute top-0 right-0 bottom-0 pointer-events-none hidden lg:block"
+          style={{ width: '10rem', background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 60%)' }}
+        />
+        <div
+          className="absolute left-0 right-0 top-0 pointer-events-none"
+          style={{ height: '6rem', background: 'linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0))' }}
+        />
       </div>
 
       {/* Floating Decorative Images */}
@@ -63,15 +78,15 @@ const Hero = () => {
         />
       </div>
       
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl animate-fade-in">
-          <h1 className="font-poppins text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-foreground">
+      <div className="w-full relative z-10">
+        <div className="max-w-[1100px] pl-6 lg:pl-36 pr-8 animate-fade-in">
+          <h1 className="font-poppins text-[48px] md:text-[64px] lg:text-[84px] leading-tight font-bold mb-6 text-foreground" style={{maxWidth: '920px'}}>
             Your Trusted Digital Healthcare Partner
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed" style={{maxWidth: '760px'}}>
             Book appointments instantly, manage your health records securely, and connect with the best healthcare providers across Sri Lanka — all in one place.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-row gap-4">
               <Button
                 className="mr-4 px-8 py-3 text-lg font-semibold shadow-lg bg-green-600 hover:bg-green-700 text-white border-none"
                 variant="default"
