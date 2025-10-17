@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, DollarSign, CheckCircle, X, Receipt, Shield, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { DollarSign, CheckCircle, Receipt } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -15,16 +15,7 @@ const Payments = () => {
   const [payments, setPayments] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState(null);
-  
-  const [paymentData, setPaymentData] = useState({
-    amount: '',
-    currency: 'USD',
-    description: '',
-    paymentMethod: 'PAYPAL'
-  });
 
   useEffect(() => {
     fetchPayments();
@@ -51,35 +42,6 @@ const Payments = () => {
     } catch (error) {
       console.error('Error fetching receipts:', error);
     }
-  };
-
-  const handleCreatePayment = async (e) => {
-    e.preventDefault();
-    setProcessingPayment(true);
-    setError(null);
-
-    try {
-      const response = await api.post(endpoints.createPayment, {
-        amount: parseFloat(paymentData.amount),
-        currency: paymentData.currency,
-        description: paymentData.description,
-        paymentMethod: paymentData.paymentMethod,
-        returnUrl: `/payment-success`,
-        cancelUrl: `/payment-cancel`
-      });
-
-      sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
-      window.location.href = response.data.approvalUrl;
-    } catch (error) {
-      console.error('Error creating payment:', error);
-      setError(error.response?.data?.message || 'Failed to create payment.');
-      setProcessingPayment(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPaymentData(prev => ({ ...prev, [name]: value }));
   };
 
   const getStatusBadge = (status) => {
@@ -132,7 +94,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Total Paid</p>
-                  <p className="text-3xl font-bold text-green-600">``</p>
+                  <p className="text-3xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-green-600" />
@@ -146,7 +108,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600">``</p>
+                  <p className="text-3xl font-bold text-yellow-600">${totalPending.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                   <DollarSign className="w-6 h-6 text-yellow-600" />
@@ -170,11 +132,6 @@ const Payments = () => {
           </Card>
         </div>
 
-        <Button onClick={() => setShowPaymentModal(true)} className="bg-[#4CAF50] hover:bg-[#45a049] text-white mb-8">
-          <CreditCard className="w-5 h-5 mr-2" />
-          Create New Payment
-        </Button>
-
         {payments.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Payment History</h2>
@@ -182,53 +139,18 @@ const Payments = () => {
               <Card key={payment.id}>
                 <CardContent className="p-6">
                   <div className="flex justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{payment.description}</h3>
-                      {getStatusBadge(payment.status)}
-                      <p className="text-sm text-gray-500">{new Date(payment.createdAt).toLocaleString()}</p>
-                    </div>
-                    <p className="text-2xl font-bold">{payment.currency} ``</p>
+                  <div>
+                    <h3 className="text-lg font-semibold">{payment.description}</h3>
+                    {getStatusBadge(payment.status)}
+                    <p className="text-sm text-gray-500">{new Date(payment.createdAt).toLocaleString()}</p>
+                  </div>
+                  <p className="text-2xl font-bold">{payment.currency} ${payment.amount.toFixed(2)}</p>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
-
-        <AnimatePresence>
-          {showPaymentModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-              onClick={() => !processingPayment && setShowPaymentModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md"
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create Payment</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleCreatePayment} className="space-y-4">
-                      <Input label="Amount" name="amount" type="number" step="0.01" min="0.01" value={paymentData.amount} onChange={handleInputChange} required />
-                      <Input label="Description" name="description" value={paymentData.description} onChange={handleInputChange} required />
-                      <Button type="submit" disabled={processingPayment} className="w-full bg-[#4CAF50] hover:bg-[#45a049]">
-                        {processingPayment ? 'Processing...' : 'Continue to PayPal'}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

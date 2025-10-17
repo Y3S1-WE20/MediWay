@@ -27,6 +27,33 @@ public class User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(length = 10)
+    private String gender;
+
+    @Column(name = "blood_type", length = 5)
+    private String bloodType;
+
+    @Column(name = "profile_picture", length = 500)
+    private String profilePicture;
+
+    @Column(length = 500)
+    private String address;
+
+    @Column(name = "emergency_contact", length = 100)
+    private String emergencyContact;
+
+    @Column(name = "emergency_phone", length = 20)
+    private String emergencyPhone;
+
+    @Column(columnDefinition = "TEXT")
+    private String allergies;
+
+    @Column(columnDefinition = "TEXT")
+    private String medications;
+
+    @Column(name = "qr_code", length = 100)
+    private String qrCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.PATIENT;
@@ -68,6 +95,33 @@ public class User {
 
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+
+    public String getBloodType() { return bloodType; }
+    public void setBloodType(String bloodType) { this.bloodType = bloodType; }
+
+    public String getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getEmergencyContact() { return emergencyContact; }
+    public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
+
+    public String getEmergencyPhone() { return emergencyPhone; }
+    public void setEmergencyPhone(String emergencyPhone) { this.emergencyPhone = emergencyPhone; }
+
+    public String getAllergies() { return allergies; }
+    public void setAllergies(String allergies) { this.allergies = allergies; }
+
+    public String getMedications() { return medications; }
+    public void setMedications(String medications) { this.medications = medications; }
+
+    public String getQrCode() { return qrCode; }
+    public void setQrCode(String qrCode) { this.qrCode = qrCode; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
