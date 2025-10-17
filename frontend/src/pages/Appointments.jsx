@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
+import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard, Search } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import api from '../api/api';
 import { endpoints } from '../api/endpoints';
 
@@ -16,6 +17,8 @@ const Appointments = () => {
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
     fetchAppointments();
@@ -194,6 +197,40 @@ const Appointments = () => {
           </motion.div>
         )}
 
+        {/* Search and Filter Controls */}
+        {appointments.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search by doctor name, specialization..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Status Filter */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Appointments List */}
         {appointments.length === 0 ? (
           <motion.div
@@ -217,7 +254,28 @@ const Appointments = () => {
           </motion.div>
         ) : (
           <div className="grid gap-6">
-            {appointments.map((appointment, index) => (
+            {appointments.filter(appointment => {
+              const matchesSearch = 
+                appointment.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                appointment.doctorSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              const matchesStatus = 
+                statusFilter === 'ALL' || appointment.status === statusFilter;
+              
+              return matchesSearch && matchesStatus;
+            }).length > 0 ? (
+              appointments.filter(appointment => {
+                const matchesSearch = 
+                  appointment.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  appointment.doctorSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                const matchesStatus = 
+                  statusFilter === 'ALL' || appointment.status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+              }).map((appointment, index) => (
               <motion.div
                 key={appointment.appointmentId}
                 initial={{ opacity: 0, y: 20 }}
@@ -339,7 +397,17 @@ const Appointments = () => {
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
+            ))
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-500">
+                  {searchTerm || statusFilter !== 'ALL' 
+                    ? 'No appointments match your search criteria' 
+                    : 'No appointments found'}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
