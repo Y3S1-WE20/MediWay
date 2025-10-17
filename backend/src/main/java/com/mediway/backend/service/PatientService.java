@@ -1,5 +1,6 @@
 package com.mediway.backend.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +55,13 @@ public class PatientService {
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
+    }
+
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    public List<User> findByIds(List<Long> ids) {
+        return userRepository.findAllById(ids);
     }
 }

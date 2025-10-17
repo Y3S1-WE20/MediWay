@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Mail, Phone, Calendar, QrCode, Edit2, Save, X, Download, 
-  Camera, Lock, Heart, Pill, MapPin, Shield, AlertCircle 
+  Camera, Lock, Heart, Pill, MapPin, Shield, AlertCircle, FileText 
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
