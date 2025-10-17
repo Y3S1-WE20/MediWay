@@ -41,24 +41,25 @@ const Hero = () => {
               src={image.src} 
               alt={image.alt}
               className="w-full h-full object-cover"
+              style={{ filter: 'brightness(0.98) saturate(0.75)', opacity: 0.98 }}
             />
           </div>
         ))}
-  <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
-  {/* subtle left dark overlay to improve text contrast */}
-  <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
-        {/* white blend overlays to smoothly merge image with page header/sides */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
+        {/* very light dark overlay (kept subtle) to preserve readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent pointer-events-none" />
+        {/* stronger white blend overlays to smoothly merge image with page header/sides */}
         <div
           className="absolute top-0 left-0 bottom-0 pointer-events-none"
-          style={{ width: '14rem', background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 60%)' }}
+          style={{ width: '20rem', background: 'linear-gradient(90deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0) 70%)' }}
         />
         <div
           className="absolute top-0 right-0 bottom-0 pointer-events-none hidden lg:block"
-          style={{ width: '10rem', background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 60%)' }}
+          style={{ width: '12rem', background: 'linear-gradient(270deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0) 70%)' }}
         />
         <div
           className="absolute left-0 right-0 top-0 pointer-events-none"
-          style={{ height: '6rem', background: 'linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0))' }}
+          style={{ height: '8rem', background: 'linear-gradient(to bottom, rgba(255,255,255,0.98), rgba(255,255,255,0))' }}
         />
       </div>
 
