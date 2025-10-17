@@ -16,38 +16,42 @@ function PaymentSuccess() {
   useEffect(() => {
     const executePayment = async () => {
       try {
-        // Get payment ID and payer ID from URL params
-        const paymentId = searchParams.get('paymentId');
-        const payerId = searchParams.get('PayerID');
+        // Get payment ID from URL params or session storage
+        const paymentId = searchParams.get('paymentId') || sessionStorage.getItem('pendingPaymentId');
+        const appointmentId = searchParams.get('appointmentId') || sessionStorage.getItem('pendingAppointmentId');
+        const transactionId = searchParams.get('token') || 'MOCK-' + Date.now();
 
-        if (!paymentId || !payerId) {
-          setError('Missing payment parameters');
+        if (!paymentId) {
+          setError('Payment ID not found');
           setStatus('error');
           return;
         }
 
-        console.log('Executing payment:', { paymentId, payerId });
+        console.log('Executing payment:', { paymentId, appointmentId, transactionId });
 
         // Execute the payment
-        const response = await api.post(
-          `${endpoints.executePayment}?paymentId=${paymentId}&PayerID=${payerId}`
-        );
+        const response = await api.post('/payments/execute', {
+          paymentId: paymentId,
+          transactionId: transactionId
+        });
 
         console.log('Payment executed:', response.data);
-        setPaymentData(response.data);
-
-        // Try to get the receipt
-        try {
-          const receiptResponse = await api.get(endpoints.getReceiptByPayment(response.data.paymentId));
-          console.log('Receipt fetched:', receiptResponse.data);
-          setReceipt(receiptResponse.data);
-        } catch (receiptError) {
-          console.warn('Could not fetch receipt:', receiptError);
+        
+        if (response.data.success) {
+          setPaymentData({
+            paymentId: response.data.paymentId,
+            appointmentId: response.data.appointmentId,
+            message: response.data.message
+          });
+          setStatus('success');
+        } else {
+          setError(response.data.message || 'Payment execution failed');
+          setStatus('error');
         }
 
         // Clear pending payment from session
         sessionStorage.removeItem('pendingPaymentId');
-        sessionStorage.removeItem('pendingPaymentData');
+        sessionStorage.removeItem('pendingAppointmentId');
 
         setStatus('success');
       } catch (err) {

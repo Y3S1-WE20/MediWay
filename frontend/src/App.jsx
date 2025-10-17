@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+import PayPalCheckout from './pages/PayPalCheckout';
 
 import './App.css';
 
@@ -71,6 +72,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Payments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/paypal-checkout"
+              element={
+                <ProtectedRoute>
+                  <PayPalCheckout />
                 </ProtectedRoute>
               }
             />

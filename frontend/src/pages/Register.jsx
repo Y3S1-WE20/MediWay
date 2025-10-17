@@ -18,7 +18,7 @@ const Register = () => {
     name: '',
     email: '',
     phone: '',
-    role: 'PATIENT', // PATIENT or DOCTOR
+    role: 'PATIENT', // Only patients can register directly
     password: '',
     confirmPassword: '',
   });
@@ -224,18 +224,18 @@ const Register = () => {
                 />
               </div>
 
-              {/* Role Selection */}
-              <Select
-                label="Register as"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                error={errors.role}
-                required
-              >
-                <option value="PATIENT">Patient</option>
-                <option value="DOCTOR">Doctor</option>
-              </Select>
+              {/* Role Selection - Only Patients can register */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Account Type
+                </label>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800 font-medium">Patient Account</p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Only patients can register directly. Doctor accounts are created by administrators.
+                  </p>
+                </div>
+              </div>
 
               {/* Password */}
               <div className="grid md:grid-cols-2 gap-4">

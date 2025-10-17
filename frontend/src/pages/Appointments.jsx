@@ -57,33 +57,46 @@ const Appointments = () => {
 
   const handlePayNow = async (appointment) => {
     try {
-      const paymentData = {
-        amount: appointment.consultationFee,
-        currency: 'USD',
-        description: `Consultation with ${appointment.doctorName} on ${new Date(appointment.appointmentDate).toLocaleDateString()}`,
-        paymentMethod: 'PAYPAL',
-        returnUrl: `${window.location.origin}/payment-success?appointment=${appointment.appointmentId}`,
-        cancelUrl: `${window.location.origin}/payment-cancel?appointment=${appointment.appointmentId}`
+      // Prepare payment request with appointmentId and amount
+      const paymentRequest = {
+        appointmentId: appointment.appointmentId,
+        amount: 50.00 // Default consultation fee - can be made dynamic
       };
 
-      const response = await api.post(endpoints.createPayment, paymentData);
-      sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
-      sessionStorage.setItem('pendingAppointmentId', appointment.appointmentId);
-      window.location.href = response.data.approvalUrl;
+      console.log('Creating payment for appointment:', paymentRequest);
+      
+      const response = await api.post('/payments/create', paymentRequest);
+      
+      console.log('Payment creation response:', response.data);
+      
+      if (response.data.success) {
+        // Store payment info in sessionStorage for success/cancel callbacks
+        sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
+        sessionStorage.setItem('pendingAppointmentId', appointment.appointmentId);
+        
+        // Redirect to PayPal
+        window.location.href = response.data.approvalUrl;
+      } else {
+        alert(response.data.message || 'Failed to create payment');
+      }
     } catch (error) {
       console.error('Error creating payment:', error);
-      alert('Failed to initiate payment. Please try again.');
+      console.error('Error response:', error.response?.data);
+      const errorMsg = error.response?.data?.message || 'Failed to initiate payment. Please try again.';
+      alert(errorMsg);
     }
   };
 
   const getStatusColor = (status) => {
     switch (status.toUpperCase()) {
+      case 'SCHEDULED':
+        return 'bg-blue-100 text-blue-800';
       case 'CONFIRMED':
         return 'bg-green-100 text-green-800';
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-800';
       case 'COMPLETED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-purple-100 text-purple-800';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800';
       default:
@@ -93,6 +106,8 @@ const Appointments = () => {
 
   const getStatusIcon = (status) => {
     switch (status.toUpperCase()) {
+      case 'SCHEDULED':
+        return <Clock className="w-4 h-4" />;
       case 'CONFIRMED':
         return <CheckCircle className="w-4 h-4" />;
       case 'PENDING':
@@ -237,15 +252,21 @@ const Appointments = () => {
                       {/* Actions */}
                       {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
                         <div className="flex flex-col gap-2">
-                          {appointment.consultationFee && appointment.status === 'PENDING' && (
+                          {appointment.consultationFee && !appointment.isPaid && appointment.status === 'SCHEDULED' && (
                             <Button
                               size="sm"
                               onClick={() => handlePayNow(appointment)}
-                              className="bg-[#4CAF50] hover:bg-[#45a049]"
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white"
                             >
-                              <CreditCard className="w-4 h-4 mr-2" />
+                              <DollarSign className="w-4 h-4 mr-2" />
                               Pay Now (${appointment.consultationFee.toFixed(2)})
                             </Button>
+                          )}
+                          {appointment.isPaid && (
+                            <Badge className="bg-green-100 text-green-800">
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Paid
+                            </Badge>
                           )}
                           <Button
                             variant="outline"

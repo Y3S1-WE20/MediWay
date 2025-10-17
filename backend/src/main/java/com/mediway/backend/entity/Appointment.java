@@ -1,80 +1,85 @@
 package com.mediway.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.UUID;
 
-/**
- * Appointment entity for booking and managing appointments
- */
 @Entity
-@Table(name = "appointments", indexes = {
-        @Index(name = "idx_appointment_patient_id", columnList = "patient_id"),
-        @Index(name = "idx_appointment_doctor_id", columnList = "doctor_id"),
-        @Index(name = "idx_appointment_status", columnList = "status"),
-        @Index(name = "idx_appointment_date", columnList = "appointment_date")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "appointments")
 public class Appointment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "appointment_id", updatable = false, nullable = false)
-    private UUID appointmentId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "patient_id", nullable = false)
-    private UUID patientId;
+    private Long patientId;
 
     @Column(name = "doctor_id", nullable = false)
-    private UUID doctorId;
+    private Long doctorId;
 
     @Column(name = "appointment_date", nullable = false)
-    private LocalDate appointmentDate;
-
-    @Column(name = "appointment_time", nullable = false)
-    private LocalTime appointmentTime;
+    private LocalDateTime appointmentDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private AppointmentStatus status = AppointmentStatus.PENDING;
+    @Column(nullable = false)
+    private Status status = Status.SCHEDULED;
 
-    @Column(name = "reason", length = 500)
-    private String reason;
-
-    @Column(name = "notes", length = 1000)
+    @Column(length = 1000)
     private String notes;
 
-    @Column(name = "consultation_fee", precision = 10, scale = 2)
-    private java.math.BigDecimal consultationFee;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    // Default constructor
+    public Appointment() {
+        this.status = Status.SCHEDULED;
+        this.createdAt = LocalDateTime.now();
+    }
 
-    /**
-     * Appointment status enum
-     */
-    public enum AppointmentStatus {
-        PENDING,        // Appointment booked, awaiting confirmation
-        CONFIRMED,      // Appointment confirmed
-        CANCELLED,      // Appointment cancelled
-        COMPLETED       // Appointment completed
+    // Constructor with parameters
+    public Appointment(Long patientId, Long doctorId, LocalDateTime appointmentDate, String notes) {
+        this();
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.appointmentDate = appointmentDate;
+        this.notes = notes;
+    }
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getPatientId() { return patientId; }
+    public void setPatientId(Long patientId) { this.patientId = patientId; }
+
+    public Long getDoctorId() { return doctorId; }
+    public void setDoctorId(Long doctorId) { this.doctorId = doctorId; }
+
+    public LocalDateTime getAppointmentDate() { return appointmentDate; }
+    public void setAppointmentDate(LocalDateTime appointmentDate) { this.appointmentDate = appointmentDate; }
+
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = Status.SCHEDULED;
+        }
+    }
+
+    public enum Status {
+        SCHEDULED,
+        COMPLETED,
+        CANCELLED
     }
 }

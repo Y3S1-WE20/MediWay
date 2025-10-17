@@ -13,6 +13,7 @@ import { endpoints } from '../api/endpoints';
 const BookAppointment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -29,6 +30,13 @@ const BookAppointment = () => {
   useEffect(() => {
     fetchDoctors();
   }, []);
+
+  useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const fetchDoctors = async () => {
     try {
@@ -64,7 +72,8 @@ const BookAppointment = () => {
         consultationFee: selectedDoctor?.consultationFee
       };
 
-      await api.post(endpoints.createAppointment, requestData);
+      const resp = await api.post(endpoints.createAppointment, requestData);
+      console.debug('Create appointment response:', resp.status, resp.data);
       
       setSuccess(true);
       setTimeout(() => {
@@ -72,7 +81,9 @@ const BookAppointment = () => {
       }, 2000);
     } catch (error) {
       console.error('Error booking appointment:', error);
-      setError(error.response?.data?.message || 'Failed to book appointment. Please try again.');
+      // show detailed message when available
+      const serverMessage = error.response?.data?.message || error.message;
+      setError(serverMessage || 'Failed to book appointment. Please try again.');
     } finally {
       setLoading(false);
     }

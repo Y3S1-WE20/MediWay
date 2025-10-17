@@ -1,107 +1,92 @@
 package com.mediway.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Payment entity to store payment transaction details
- * Supports PayPal sandbox integration for MediWay payment processing
- */
 @Entity
-@Table(name = "payments", indexes = {
-        @Index(name = "idx_payment_user_id", columnList = "user_id"),
-        @Index(name = "idx_payment_paypal_id", columnList = "paypal_payment_id"),
-        @Index(name = "idx_payment_status", columnList = "status")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "payments")
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "payment_id", updatable = false, nullable = false)
-    private UUID paymentId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    private Long userId;
 
-    @Column(name = "appointment_id")
-    private UUID appointmentId;
+    @Column(name = "appointment_id", nullable = false)
+    private Long appointmentId;
 
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "currency", nullable = false, length = 3)
-    @Builder.Default
-    private String currency = "USD";
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private PaymentStatus status = PaymentStatus.CREATED;
+    @Column(nullable = false)
+    private Status status = Status.PENDING;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, length = 20)
-    @Builder.Default
-    private PaymentMethod paymentMethod = PaymentMethod.PAYPAL;
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
 
-    @Column(name = "paypal_payment_id", length = 100, unique = true)
-    private String paypalPaymentId;
+    @Column(name = "transaction_id", length = 100)
+    private String transactionId;
 
-    @Column(name = "payer_id", length = 100)
-    private String payerId;
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
 
-    @Column(name = "description", length = 500)
-    private String description;
-
-    @Column(name = "return_url", length = 500)
-    private String returnUrl;
-
-    @Column(name = "cancel_url", length = 500)
-    private String cancelUrl;
-
-    @Column(name = "approval_url", length = 500)
-    private String approvalUrl;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @Column(name = "completed_at")
-    private LocalDateTime completedAt;
-
-    /**
-     * Payment status enum
-     */
-    public enum PaymentStatus {
-        CREATED,        // Payment intent created
-        APPROVED,       // User approved payment
-        COMPLETED,      // Payment successfully completed
-        FAILED,         // Payment failed
-        CANCELLED       // Payment cancelled by user
+    // Default constructor
+    public Payment() {
+        this.status = Status.PENDING;
+        this.paymentDate = LocalDateTime.now();
     }
 
-    /**
-     * Payment method enum
-     */
-    public enum PaymentMethod {
-        PAYPAL,
-        CREDIT_CARD,
-        DEBIT_CARD
+    // Constructor with parameters
+    public Payment(Long userId, Long appointmentId, BigDecimal amount, String paymentMethod) {
+        this();
+        this.userId = userId;
+        this.appointmentId = appointmentId;
+        this.amount = amount;
+        this.paymentMethod = paymentMethod;
+    }
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public Long getAppointmentId() { return appointmentId; }
+    public void setAppointmentId(Long appointmentId) { this.appointmentId = appointmentId; }
+
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public LocalDateTime getPaymentDate() { return paymentDate; }
+    public void setPaymentDate(LocalDateTime paymentDate) { this.paymentDate = paymentDate; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (paymentDate == null) {
+            paymentDate = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = Status.PENDING;
+        }
+    }
+
+    public enum Status {
+        PENDING,
+        COMPLETED,
+        FAILED
     }
 }

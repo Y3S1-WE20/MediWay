@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, DollarSign, CheckCircle, X, Receipt, Shield, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { DollarSign, CheckCircle, Receipt } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -15,16 +15,7 @@ const Payments = () => {
   const [payments, setPayments] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState(null);
-  
-  const [paymentData, setPaymentData] = useState({
-    amount: '',
-    currency: 'USD',
-    description: '',
-    paymentMethod: 'PAYPAL'
-  });
 
   useEffect(() => {
     fetchPayments();
@@ -53,33 +44,163 @@ const Payments = () => {
     }
   };
 
-  const handleCreatePayment = async (e) => {
-    e.preventDefault();
-    setProcessingPayment(true);
-    setError(null);
-
+  const generateReceipt = async (paymentId) => {
     try {
-      const response = await api.post(endpoints.createPayment, {
-        amount: parseFloat(paymentData.amount),
-        currency: paymentData.currency,
-        description: paymentData.description,
-        paymentMethod: paymentData.paymentMethod,
-        returnUrl: `/payment-success`,
-        cancelUrl: `/payment-cancel`
-      });
-
-      sessionStorage.setItem('pendingPaymentId', response.data.paymentId);
-      window.location.href = response.data.approvalUrl;
+      setLoading(true);
+      const response = await api.post(`/payments/${paymentId}/generate-receipt`);
+      
+      if (response.data.success) {
+        alert('Receipt generated successfully!');
+        fetchReceipts(); // Refresh receipts list
+      } else {
+        alert(response.data.message || 'Failed to generate receipt');
+      }
     } catch (error) {
-      console.error('Error creating payment:', error);
-      setError(error.response?.data?.message || 'Failed to create payment.');
-      setProcessingPayment(false);
+      console.error('Error generating receipt:', error);
+      alert('Error generating receipt. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPaymentData(prev => ({ ...prev, [name]: value }));
+  const downloadReceipt = async (paymentId) => {
+    if (!paymentId) {
+      alert('Payment ID is required to download receipt.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Downloading receipt for payment ID:', paymentId);
+      
+      // First check if receipt exists, if not generate it
+      let receiptResponse;
+      try {
+        receiptResponse = await api.get(`/payments/receipt/payment/${paymentId}`, {
+          headers: { 'X-User-Id': user?.id }
+        });
+      } catch (error) {
+        console.log('Receipt not found, attempting to generate...');
+        if (error.response && (error.response.status === 404 || error.response.status === 500)) {
+          // Receipt doesn't exist, generate it first
+          try {
+            const generateResponse = await api.post(`/payments/${paymentId}/generate-receipt`, {}, {
+              headers: { 'X-User-Id': user?.id }
+            });
+            
+            if (generateResponse.data.success) {
+              receiptResponse = { data: generateResponse.data.receipt };
+              console.log('Receipt generated successfully:', receiptResponse.data);
+            } else {
+              alert('Failed to generate receipt: ' + (generateResponse.data.message || 'Unknown error'));
+              return;
+            }
+          } catch (genError) {
+            console.error('Failed to generate receipt:', genError);
+            alert('Failed to generate receipt. The backend server may not be running. Error: ' + 
+                  (genError.response?.data?.message || genError.message || 'Unknown error'));
+            return;
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      const receiptNumber = receiptResponse.data?.receiptNumber;
+      if (!receiptNumber) {
+        alert('Receipt number not found. Please contact support.');
+        return;
+      }
+      
+      console.log('Downloading PDF for receipt number:', receiptNumber);
+      
+      // Download the PDF
+      const response = await api.get(`/payments/receipt/${receiptNumber}/pdf`, {
+        responseType: 'blob',
+        headers: { 'X-User-Id': user?.id }
+      });
+      
+      if (response.data.size === 0) {
+        alert('PDF file is empty. Please try regenerating the receipt.');
+        return;
+      }
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `receipt-${receiptNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Receipt downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      
+      if (error.code === 'NETWORK_ERROR' || !error.response) {
+        alert('Network error: Cannot connect to server. Please ensure the backend is running and try again.');
+      } else if (error.response?.status === 403) {
+        alert('Access denied. You may not have permission to download this receipt.');
+      } else if (error.response?.status === 404) {
+        alert('Receipt not found. Please contact support.');
+      } else {
+        alert('Error downloading receipt: ' + (error.response?.data?.message || error.message || 'Please try again'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadReceiptByNumber = async (receiptNumber) => {
+    if (!receiptNumber) {
+      alert('Receipt number is required to download PDF.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Downloading PDF for receipt number:', receiptNumber);
+      
+      const response = await api.get(`/payments/receipt/${receiptNumber}/pdf`, {
+        responseType: 'blob',
+        headers: { 'X-User-Id': user?.id }
+      });
+      
+      if (response.data.size === 0) {
+        alert('PDF file is empty. Please try regenerating the receipt.');
+        return;
+      }
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `receipt-${receiptNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Receipt PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading receipt PDF:', error);
+      
+      if (error.code === 'NETWORK_ERROR' || !error.response) {
+        alert('Network error: Cannot connect to server. Please ensure the backend is running and try again.');
+      } else if (error.response?.status === 403) {
+        alert('Access denied. You may not have permission to download this receipt.');
+      } else if (error.response?.status === 404) {
+        alert('Receipt not found. Please contact support.');
+      } else {
+        alert('Error downloading receipt PDF: ' + (error.response?.data?.message || error.message || 'Please try again'));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -132,7 +253,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Total Paid</p>
-                  <p className="text-3xl font-bold text-green-600">``</p>
+                  <p className="text-3xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-green-600" />
@@ -146,7 +267,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600">``</p>
+                  <p className="text-3xl font-bold text-yellow-600">${totalPending.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                   <DollarSign className="w-6 h-6 text-yellow-600" />
@@ -170,10 +291,41 @@ const Payments = () => {
           </Card>
         </div>
 
-        <Button onClick={() => setShowPaymentModal(true)} className="bg-[#4CAF50] hover:bg-[#45a049] text-white mb-8">
-          <CreditCard className="w-5 h-5 mr-2" />
-          Create New Payment
-        </Button>
+        {receipts.length > 0 && (
+          <div className="space-y-4 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">My Receipts</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {receipts.map((receipt) => (
+                <Card key={receipt.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-semibold text-sm">{receipt.receiptNumber}</h4>
+                        <p className="text-xs text-gray-500">
+                          {new Date(receipt.issueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">Receipt</Badge>
+                    </div>
+                    <div className="space-y-1 mb-3">
+                      <p className="text-sm"><strong>Service:</strong> {receipt.serviceDescription}</p>
+                      <p className="text-sm"><strong>Doctor:</strong> {receipt.doctorName}</p>
+                      <p className="text-lg font-bold text-green-600">${receipt.amount.toFixed(2)}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => downloadReceiptByNumber(receipt.receiptNumber)}
+                      className="w-full flex items-center justify-center gap-1"
+                    >
+                      <Receipt className="w-4 h-4" />
+                      Download PDF
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {payments.length > 0 && (
           <div className="space-y-4">
@@ -181,54 +333,54 @@ const Payments = () => {
             {payments.map((payment) => (
               <Card key={payment.id}>
                 <CardContent className="p-6">
-                  <div className="flex justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{payment.description}</h3>
-                      {getStatusBadge(payment.status)}
-                      <p className="text-sm text-gray-500">{new Date(payment.createdAt).toLocaleString()}</p>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{payment.description || 'Medical Service Payment'}</h3>
+                      <div className="flex items-center gap-2 mt-2 mb-2">
+                        {getStatusBadge(payment.status)}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'Date not available'}
+                      </p>
+                      {payment.transactionId && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          Transaction ID: {payment.transactionId}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-2xl font-bold">{payment.currency} ``</p>
+                    <div className="flex flex-col items-end">
+                      <p className="text-2xl font-bold text-green-600">
+                        ${payment.amount.toFixed(2)}
+                      </p>
+                      {payment.status === 'COMPLETED' && (
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => generateReceipt(payment.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Receipt className="w-4 h-4" />
+                            Receipt
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadReceipt(payment.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            PDF
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
-
-        <AnimatePresence>
-          {showPaymentModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-              onClick={() => !processingPayment && setShowPaymentModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md"
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create Payment</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleCreatePayment} className="space-y-4">
-                      <Input label="Amount" name="amount" type="number" step="0.01" min="0.01" value={paymentData.amount} onChange={handleInputChange} required />
-                      <Input label="Description" name="description" value={paymentData.description} onChange={handleInputChange} required />
-                      <Button type="submit" disabled={processingPayment} className="w-full bg-[#4CAF50] hover:bg-[#45a049]">
-                        {processingPayment ? 'Processing...' : 'Continue to PayPal'}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
