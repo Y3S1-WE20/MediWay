@@ -99,6 +99,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Reports route only for admin */}
             <Route
               path="/reports"
               element={

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { Download } from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+} from 'recharts';
+import { useAuth } from '../hooks/useAuth';
 import { 
-  Shield, Users, Calendar, FileText, Plus, Edit, Trash2, 
-  Search, Eye, UserCheck, X, Save, Stethoscope 
+  Shield, Users, Calendar, Plus, Trash2, 
+  Search, X, Save, Stethoscope, FileText
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import api from '../api/api';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -16,10 +19,20 @@ const AdminDashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({});
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'PATIENT',
+    phone: ''
+  });
+  const [searchUserTerm, setSearchUserTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [showCreateDoctorModal, setShowCreateDoctorModal] = useState(false);
-  const [showEditDoctorModal, setShowEditDoctorModal] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [doctorFormData, setDoctorFormData] = useState({
@@ -44,30 +57,48 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // Fetch all dashboard data
   const fetchDashboardData = async () => {
+    // Fetch dashboard stats for analytics
+    try {
+      const statsResponse = await fetch('http://localhost:8080/reports/dashboard');
+      const statsData = await statsResponse.json();
+      setDashboardStats(statsData);
+    } catch (e) { setDashboardStats({}); }
+
+    // Fetch all payments for analytics tab
+    try {
+      const paymentsResponse = await fetch('http://localhost:8080/reports/payments');
+      const paymentsData = await paymentsResponse.json();
+      setPayments(paymentsData);
+    } catch (e) { setPayments([]); }
     setLoading(true);
     try {
-      // For now, use mock data since backend might not be running
-      const mockDoctors = [
-        { id: 2, fullName: 'Dr. John Smith', email: 'doctor@mediway.com', role: 'DOCTOR', phone: '123-456-7890', specialization: 'Cardiology' },
-        { id: 3, fullName: 'Dr. Sarah Johnson', email: 'sarah@mediway.com', role: 'DOCTOR', phone: '123-456-7891', specialization: 'Pediatrics' }
-      ];
-      
-      const mockPatients = [
-        { id: 4, fullName: 'Patient One', email: 'patient1@test.com', role: 'PATIENT' },
-        { id: 5, fullName: 'Patient Two', email: 'patient2@test.com', role: 'PATIENT' }
-      ];
+      // Fetch users (for Manage Users tab)
+      const usersResponse = await fetch('http://localhost:8080/admin/users');
+      const usersData = await usersResponse.json();
+      setUsers(usersData);
 
-      setDoctors(mockDoctors);
-      setPatients(mockPatients);
-      setAppointments([]);
+      // Fetch doctors
+      const doctorsResponse = await fetch('http://localhost:8080/admin/doctors');
+      const doctorsData = await doctorsResponse.json();
+      setDoctors(doctorsData);
+
+      // Fetch patients (assuming all users with role PATIENT)
+      const patientsData = usersData.filter(u => u.role === 'PATIENT');
+      setPatients(patientsData);
+
+      // Fetch appointments
+      const appointmentsResponse = await fetch('http://localhost:8080/admin/appointments');
+      const appointmentsData = await appointmentsResponse.json();
+      setAppointments(appointmentsData);
 
       // Update stats
       setStats([
-        { title: 'Total Patients', value: mockPatients.length.toString(), icon: Users, color: 'bg-blue-500' },
-        { title: 'Total Doctors', value: mockDoctors.length.toString(), icon: Stethoscope, color: 'bg-green-500' },
-        { title: 'Total Appointments', value: '0', icon: Calendar, color: 'bg-purple-500' },
-        { title: 'Active Users', value: (mockDoctors.length + mockPatients.length + 1).toString(), icon: Shield, color: 'bg-orange-500' },
+        { title: 'Total Patients', value: patientsData.length.toString(), icon: Users, color: 'bg-blue-500' },
+        { title: 'Total Doctors', value: doctorsData.length.toString(), icon: Stethoscope, color: 'bg-green-500' },
+        { title: 'Total Appointments', value: appointmentsData.length.toString(), icon: Calendar, color: 'bg-purple-500' },
+        { title: 'Active Users', value: (usersData.length).toString(), icon: Shield, color: 'bg-orange-500' },
       ]);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -76,24 +107,86 @@ const AdminDashboard = () => {
     }
   };
 
+  // User CRUD handlers
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8080/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userFormData),
+      });
+      if (response.ok) {
+        const newUser = await response.json();
+        setUsers([...users, newUser]);
+        alert('User created successfully!');
+        setShowCreateUserModal(false);
+        setUserFormData({ name: '', email: '', password: '', role: 'PATIENT', phone: '' });
+        fetchDashboardData();
+      } else {
+        alert('Error creating user');
+      }
+    } catch (error) {
+      alert('Error creating user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        const response = await fetch(`http://localhost:8080/admin/users/${userId}`, { method: 'DELETE' });
+        if (response.ok) {
+          setUsers(users.filter(u => u.id !== userId));
+          alert('User deleted successfully!');
+          fetchDashboardData();
+        } else {
+          alert('Error deleting user');
+        }
+      } catch (error) {
+        alert('Error deleting user');
+      }
+    }
+  };
+
+  // Report download handlers
+  // Report download handlers removed (now in Reports.jsx)
+
   const handleCreateDoctor = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Mock creation for now
-      const newDoctor = {
-        id: Date.now(),
-        ...doctorFormData,
-        role: 'DOCTOR'
-      };
-      
-      setDoctors([...doctors, newDoctor]);
-      alert('Doctor created successfully! (Note: This is a demo - backend integration needed)');
-      setShowCreateDoctorModal(false);
-      resetDoctorForm();
+      const response = await fetch('http://localhost:8080/admin/doctors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: doctorFormData.fullName,
+          email: doctorFormData.email,
+          password: doctorFormData.password,
+          specialization: doctorFormData.specialization,
+          phone: doctorFormData.phone,
+          available: true
+        }),
+      });
+
+      if (response.ok) {
+        const newDoctor = await response.json();
+        setDoctors([...doctors, newDoctor]);
+        alert('Doctor created successfully!');
+        setShowCreateDoctorModal(false);
+        resetDoctorForm();
+        fetchDashboardData(); // Refresh data
+      } else {
+        const errorData = await response.json();
+        alert('Error creating doctor: ' + (errorData.message || 'Please try again'));
+      }
     } catch (error) {
       console.error('Error creating doctor:', error);
-      alert('Error creating doctor: ' + (error.response?.data?.message || 'Please try again'));
+      alert('Error creating doctor: ' + (error.message || 'Please try again'));
     } finally {
       setLoading(false);
     }
@@ -102,8 +195,17 @@ const AdminDashboard = () => {
   const handleDeleteDoctor = async (doctorId) => {
     if (window.confirm('Are you sure you want to delete this doctor?')) {
       try {
-        setDoctors(doctors.filter(d => d.id !== doctorId));
-        alert('Doctor deleted successfully! (Note: This is a demo - backend integration needed)');
+        const response = await fetch(`http://localhost:8080/admin/doctors/${doctorId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setDoctors(doctors.filter(d => d.id !== doctorId));
+          alert('Doctor deleted successfully!');
+          fetchDashboardData(); // Refresh data
+        } else {
+          alert('Error deleting doctor: Please try again');
+        }
       } catch (error) {
         console.error('Error deleting doctor:', error);
         alert('Error deleting doctor: Please try again');
@@ -121,25 +223,10 @@ const AdminDashboard = () => {
       licenseNumber: '',
       experience: ''
     });
-    setSelectedDoctor(null);
-  };
-
-  const openEditModal = (doctor) => {
-    setSelectedDoctor(doctor);
-    setDoctorFormData({
-      fullName: doctor.fullName || '',
-      email: doctor.email || '',
-      phone: doctor.phone || '',
-      password: '',
-      specialization: doctor.specialization || '',
-      licenseNumber: doctor.licenseNumber || '',
-      experience: doctor.experience || ''
-    });
-    setShowEditDoctorModal(true);
   };
 
   const filteredDoctors = doctors.filter(doctor =>
-    doctor.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doctor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -147,25 +234,25 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600 mt-2">
             Welcome back, {user?.name} ({user?.role})
           </p>
-        </motion.div>
+        </div>
 
         {/* Tabs */}
         <div className="mb-6">
           <nav className="flex space-x-1 bg-white rounded-lg p-1 shadow-sm">
             {[
               { id: 'overview', name: 'Overview', icon: Shield },
+              { id: 'users', name: 'Manage Users', icon: Users },
               { id: 'doctors', name: 'Manage Doctors', icon: Stethoscope },
               { id: 'patients', name: 'Patients', icon: Users },
-              { id: 'appointments', name: 'Appointments', icon: Calendar }
+              { id: 'appointments', name: 'Appointments', icon: Calendar },
+              { id: 'payments', name: 'Payments', icon: FileText },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -180,21 +267,116 @@ const AdminDashboard = () => {
                 {tab.name}
               </button>
             ))}
+            <a href="/reports">
+              <Button variant="outline">Reports</Button>
+            </a>
           </nav>
         </div>
+        {/* Manage Users Tab */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>User Management</CardTitle>
+                  <Button onClick={() => setShowCreateUserModal(true)} className="bg-[#4CAF50] hover:bg-[#45a049] flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Add New User
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Search users by name, email, or role..."
+                      value={searchUserTerm}
+                      onChange={(e) => setSearchUserTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {users.filter(user =>
+                    user.name?.toLowerCase().includes(searchUserTerm.toLowerCase()) ||
+                    user.email?.toLowerCase().includes(searchUserTerm.toLowerCase()) ||
+                    user.role?.toLowerCase().includes(searchUserTerm.toLowerCase())
+                  ).map(user => (
+                    <div key={user.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold text-lg">{user.name}</h3>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="text-sm text-gray-600 mt-1">Role: {user.role}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleDeleteUser(user.id)} className="flex items-center gap-1 text-red-600 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {users.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No users found</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Create User Modal */}
+        {showCreateUserModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Create New User</h2>
+                <Button variant="outline" onClick={() => setShowCreateUserModal(false)} className="p-2">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input label="Name" value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} required />
+                  <Input label="Email" type="email" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} required />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input label="Password" type="password" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} required />
+                  <Input label="Phone" value={userFormData.phone} onChange={e => setUserFormData({ ...userFormData, phone: e.target.value })} />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <label className="block text-sm font-medium text-gray-700">Role
+                    <select value={userFormData.role} onChange={e => setUserFormData({ ...userFormData, role: e.target.value })} className="mt-1 block w-full border-gray-300 rounded-md">
+                      <option value="PATIENT">Patient</option>
+                      <option value="DOCTOR">Doctor</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" disabled={loading} className="bg-[#4CAF50] hover:bg-[#45a049] flex items-center gap-2">
+                    <Save className="w-4 h-4" /> Create User
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateUserModal(false)}>Cancel</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+            {/* Report Download Buttons */}
+            {/* Report Download Buttons removed; see Reports page */}
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
+              {stats.map((stat) => (
+                <div key={stat.title}>
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -208,8 +390,57 @@ const AdminDashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
               ))}
+            </div>
+
+            {/* 1. Patient–Doctor–Appointment Overview (Bar Chart) */}
+            <div className="bg-white rounded-lg shadow p-6 mt-6">
+              <h2 className="text-lg font-semibold mb-4">Patient–Doctor–Appointment Overview</h2>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart
+                  data={[{
+                    name: 'Patients', count: patients.length
+                  }, {
+                    name: 'Doctors', count: doctors.length
+                  }, {
+                    name: 'Appointments', count: appointments.length
+                  }]}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#4CAF50" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* 3. Payment Status Distribution (Pie/Donut Chart) */}
+            <div className="bg-white rounded-lg shadow p-6 mt-6">
+              <h2 className="text-lg font-semibold mb-4">Payment Status Distribution</h2>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={Object.entries(dashboardStats.paymentsByStatus || {}).map(([status, value]) => ({ name: status, value }))}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    label
+                  >
+                    {Object.entries(dashboardStats.paymentsByStatus || {}).map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={["#4CAF50", "#FF9800", "#F44336"][idx % 3]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Quick Actions */}
@@ -218,7 +449,7 @@ const AdminDashboard = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Button 
                     onClick={() => setActiveTab('doctors')}
                     className="bg-[#4CAF50] hover:bg-[#45a049] flex items-center gap-2"
@@ -231,7 +462,6 @@ const AdminDashboard = () => {
                     onClick={() => fetchDashboardData()}
                     className="flex items-center gap-2"
                   >
-                    <FileText className="w-4 h-4" />
                     Refresh Data
                   </Button>
                   <Button 
@@ -242,6 +472,109 @@ const AdminDashboard = () => {
                     <Calendar className="w-4 h-4" />
                     View Appointments
                   </Button>
+                  <a href="/reports">
+                    <Button variant="outline">Reports</Button>
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {/* Payments Tab */}
+        {activeTab === 'payments' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Payments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {payments.length > 0 ? (
+                    payments.map((payment) => (
+                      <div key={payment.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-semibold text-lg">Payment ID: {payment.id}</h3>
+                            <p className="text-sm text-gray-500">User ID: {payment.userId}</p>
+                            <p className="text-sm text-gray-600">Amount: ₹{payment.amount}</p>
+                            <p className="text-sm text-gray-600">Status: {payment.status}</p>
+                            <p className="text-sm text-gray-600">Date: {payment.paymentDate}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No payments found</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {/* Patients Tab */}
+        {activeTab === 'patients' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Patients</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {patients.length > 0 ? (
+                    patients.map((patient) => (
+                      <div key={patient.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-semibold text-lg">{patient.name}</h3>
+                            <p className="text-sm text-gray-500">{patient.email}</p>
+                          </div>
+                          <div className="text-sm text-gray-600">ID: {patient.id}</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No patients found</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Appointments Tab */}
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appointments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {appointments.length > 0 ? (
+                    appointments.map((appt) => (
+                      <div key={appt.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-semibold text-lg">{appt.patientName || 'Patient'}</h3>
+                            <p className="text-sm text-gray-500">Doctor: {appt.doctorName || appt.doctorId}</p>
+                            <p className="text-sm text-gray-600">Date: {appt.date || appt.appointmentDate}</p>
+                          </div>
+                          <div className="text-sm text-gray-600">Status: {appt.status}</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No appointments found</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -266,6 +599,39 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 {/* Search */}
+                {activeTab === 'payments' && (
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Payments</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {payments.length > 0 ? (
+                            payments.map((payment) => (
+                              <div key={payment.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <h3 className="font-semibold text-lg">Payment ID: {payment.id}</h3>
+                                    <p className="text-sm text-gray-500">User ID: {payment.userId}</p>
+                                    <p className="text-sm text-gray-600">Amount: ₹{payment.amount}</p>
+                                    <p className="text-sm text-gray-600">Status: {payment.status}</p>
+                                    <p className="text-sm text-gray-600">Date: {payment.paymentDate}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                              <p>No payments found</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
                 <div className="mb-6">
                   <div className="relative">
                     <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -285,22 +651,13 @@ const AdminDashboard = () => {
                       <div key={doctor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h3 className="font-semibold text-lg">{doctor.fullName}</h3>
+                            <h3 className="font-semibold text-lg">{doctor.name}</h3>
                             <p className="text-sm text-gray-500">{doctor.email}</p>
                             {doctor.specialization && (
                               <p className="text-sm text-gray-600 mt-1">Specialization: {doctor.specialization}</p>
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openEditModal(doctor)}
-                              className="flex items-center gap-1"
-                            >
-                              <Edit className="w-4 h-4" />
-                              Edit
-                            </Button>
                             <Button
                               size="sm"
                               variant="outline"

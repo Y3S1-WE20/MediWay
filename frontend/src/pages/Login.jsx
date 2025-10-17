@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogIn, Mail, Lock, Heart } from 'lucide-react';
+import { LogIn, Mail, Lock, User } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import api from '../api/api';
 import { endpoints } from '../api/endpoints';
 
@@ -13,7 +13,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [loginMode, setLoginMode] = useState('patient'); // 'patient' or 'admin'
+  const [loginMode, setLoginMode] = useState('patient'); // 'patient', 'doctor', or 'admin'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -52,33 +52,36 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Call backend API
-      const response = await api.post(endpoints.login, {
+      let loginEndpoint = '/patients/login'; // Default for patient
+      if (loginMode === 'doctor') loginEndpoint = '/doctors/login';
+      if (loginMode === 'admin') loginEndpoint = '/admin/login';
+      // Call backend API (no /api prefix)
+      const response = await api.post(loginEndpoint, {
         email: formData.email,
         password: formData.password,
       });
 
-      const { token, userId, fullName, email, role, tokenType } = response.data;
-      
+      const data = response.data;
+
       // Create user object
       const userData = {
-        id: userId,
-        name: fullName,
-        email: email,
-        role: role, // ADMIN, DOCTOR, or PATIENT
+        id: data.userId,
+        name: data.name,
+        email: formData.email, // Since response doesn't include email
+        role: data.role,
       };
 
-      // Store token and user data
-      login(userData, token);
-      
+      // Store user data (no token for now)
+      login(userData);
+
       // Navigate based on role
-      console.log('User role from login:', role);
+      console.log('User role from login:', data.role);
       console.log('User data:', userData);
-      
-      if (role === 'ADMIN') {
+
+      if (data.role === 'ADMIN') {
         console.log('Redirecting to admin dashboard');
         navigate('/admin/dashboard');
-      } else if (role === 'DOCTOR') {
+      } else if (data.role === 'DOCTOR') {
         console.log('Redirecting to doctor dashboard');
         navigate('/doctor/dashboard');
       } else {
@@ -112,42 +115,21 @@ const Login = () => {
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                 className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"
               >
-                <Heart className="w-8 h-8 text-[#4CAF50] fill-[#4CAF50]" />
+                <User className="w-8 h-8 text-[#4CAF50]" />
               </motion.div>
               <CardTitle className="text-3xl">Welcome Back</CardTitle>
               <p className="text-gray-600 mt-2">
                 Login to access your health dashboard
               </p>
+              <div className="flex justify-center gap-2 mt-4">
+                <Button variant={loginMode === 'patient' ? 'default' : 'outline'} onClick={() => setLoginMode('patient')}>Patient Login</Button>
+                <Button variant={loginMode === 'doctor' ? 'default' : 'outline'} onClick={() => setLoginMode('doctor')}>Doctor Login</Button>
+                <Button variant={loginMode === 'admin' ? 'default' : 'outline'} onClick={() => setLoginMode('admin')}>Admin Login</Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            {/* Login Mode Toggle */}
-            <div className="flex gap-2 mb-6">
-              <Button
-                type="button"
-                onClick={() => setLoginMode('patient')}
-                className={`flex-1 ${
-                  loginMode === 'patient'
-                    ? 'bg-[#4CAF50] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Patient/Doctor Login
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setLoginMode('admin')}
-                className={`flex-1 ${
-                  loginMode === 'admin'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Admin Login
-              </Button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6 px-6 pb-6">
               <Input
                 label="Email Address"
                 name="email"

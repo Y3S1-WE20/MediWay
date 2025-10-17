@@ -1,22 +1,34 @@
 package com.mediway.backend.controller;
 
-import com.mediway.backend.entity.User;
-import com.mediway.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.mediway.backend.entity.Admin;
+import com.mediway.backend.entity.Doctor;
+import com.mediway.backend.entity.User;
+import com.mediway.backend.repository.AdminRepository;
+import com.mediway.backend.repository.DoctorRepository;
+import com.mediway.backend.repository.UserRepository;
+
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5174")
 public class SimpleAuthController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
@@ -109,6 +121,69 @@ public class SimpleAuthController {
             response.put("role", user.getRole().toString());
             response.put("tokenType", "Bearer");
 
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Login failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    @PostMapping("/doctor-login")
+    public ResponseEntity<?> doctorLogin(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            Doctor doctor = doctorRepository.findAll().stream()
+                .filter(d -> d.getEmail().equals(email))
+                .findFirst().orElse(null);
+            if (doctor == null || !doctor.getPassword().equals(password)) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "Invalid email or password");
+                return ResponseEntity.status(401).body(error);
+            }
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Login successful");
+            response.put("token", "simple-token-doctor-" + doctor.getId());
+            response.put("userId", doctor.getId());
+            response.put("fullName", doctor.getName());
+            response.put("email", doctor.getEmail());
+            response.put("role", "DOCTOR");
+            response.put("tokenType", "Bearer");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Login failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    @PostMapping("/admin-login")
+    public ResponseEntity<?> adminLogin(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            Optional<Admin> adminOpt = adminRepository.findByEmail(email);
+            if (adminOpt.isEmpty() || !adminOpt.get().getPassword().equals(password)) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "Invalid email or password");
+                return ResponseEntity.status(401).body(error);
+            }
+            Admin admin = adminOpt.get();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Login successful");
+            response.put("token", "simple-token-admin-" + admin.getId());
+            response.put("userId", admin.getId());
+            response.put("fullName", admin.getName());
+            response.put("email", admin.getEmail());
+            response.put("role", "ADMIN");
+            response.put("tokenType", "Bearer");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();

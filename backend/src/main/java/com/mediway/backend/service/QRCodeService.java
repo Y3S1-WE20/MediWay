@@ -1,17 +1,19 @@
 package com.mediway.backend.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for generating and managing QR codes for patient identification
@@ -73,9 +75,9 @@ public class QRCodeService {
         }
 
         try {
-            // Validate UUID format
-            UUID.fromString(parts[1]);
-            return true;
+            // Validate UUID format by attempting to parse it
+            UUID uuid = UUID.fromString(parts[1]);
+            return uuid != null;
         } catch (IllegalArgumentException e) {
             log.warn("Invalid UUID in QR code data: {}", parts[1]);
             return false;

@@ -1,22 +1,30 @@
 package com.mediway.backend.controller;
 
-import com.mediway.backend.entity.MedicalRecord;
-import com.mediway.backend.entity.User;
-import com.mediway.backend.repository.MedicalRecordRepository;
-import com.mediway.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.mediway.backend.entity.MedicalRecord;
+import com.mediway.backend.entity.User;
+import com.mediway.backend.repository.MedicalRecordRepository;
+import com.mediway.backend.repository.UserRepository;
+
 @RestController
 @RequestMapping("/api/medical-records")
-@CrossOrigin(origins = "*")
 public class MedicalRecordController {
 
     @Autowired
@@ -31,6 +39,8 @@ public class MedicalRecordController {
             @RequestBody MedicalRecord medicalRecord,
             @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         try {
+            System.out.println("[DEBUG] Incoming MedicalRecord: " + medicalRecord);
+            System.out.println("[DEBUG] Incoming userId: " + userId);
             if (userId == null) {
                 userId = 1L; // Default for testing
             }
@@ -45,6 +55,7 @@ public class MedicalRecordController {
             }
 
             User user = userOpt.get();
+            System.out.println("[DEBUG] User from DB: " + user);
             if (!user.getRole().equals(User.Role.DOCTOR) && !user.getRole().equals(User.Role.ADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                     "success", false,
@@ -54,8 +65,10 @@ public class MedicalRecordController {
 
             // Set doctor ID if user is doctor
             if (user.getRole().equals(User.Role.DOCTOR)) {
+                System.out.println("[DEBUG] Setting doctorId to userId: " + userId);
                 medicalRecord.setDoctorId(userId);
             }
+            System.out.println("[DEBUG] After doctorId set, MedicalRecord: " + medicalRecord);
 
             // Validate required fields
             if (medicalRecord.getPatientId() == null) {

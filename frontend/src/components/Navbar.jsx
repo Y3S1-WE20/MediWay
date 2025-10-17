@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Menu, X, User, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/button';
 
 const Navbar = () => {
@@ -32,13 +32,25 @@ const Navbar = () => {
     { name: 'Login', path: '/login' },
   ];
 
-  const privateLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Appointments', path: '/appointments' },
-    { name: 'Payments', path: '/payments' },
-    { name: 'Reports', path: '/reports' },
-    { name: 'Profile', path: '/profile' },
-  ];
+
+  let privateLinks = [];
+  if (user?.role === 'ADMIN') {
+    privateLinks = [
+      { name: 'Admin Dashboard', path: '/admin/dashboard' },
+      { name: 'Reports', path: '/reports' }
+    ];
+  } else if (user?.role === 'DOCTOR') {
+    privateLinks = [
+      { name: 'Doctor Dashboard', path: '/doctor/dashboard' }
+    ];
+  } else if (user?.role === 'PATIENT') {
+    privateLinks = [
+      { name: 'Home', path: '/' },
+      { name: 'Appointments', path: '/appointments' },
+      { name: 'Payments', path: '/payments' },
+      { name: 'Profile', path: '/profile' },
+    ];
+  }
 
   const links = isAuthenticated ? privateLinks : publicLinks;
 

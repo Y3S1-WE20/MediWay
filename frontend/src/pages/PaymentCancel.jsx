@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import { endpoints } from '../api/endpoints';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 

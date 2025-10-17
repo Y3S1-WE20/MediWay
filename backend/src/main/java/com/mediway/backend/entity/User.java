@@ -1,8 +1,17 @@
 package com.mediway.backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -51,7 +60,7 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String medications;
 
-    @Column(name = "qr_code", length = 100)
+    @Column(name = "qr_code", columnDefinition = "TEXT")
     private String qrCode;
 
     @Enumerated(EnumType.STRING)

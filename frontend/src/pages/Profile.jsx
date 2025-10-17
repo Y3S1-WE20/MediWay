@@ -9,7 +9,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import api from '../api/api';
 
 const Profile = () => {
@@ -19,6 +19,7 @@ const Profile = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [qrCode, setQrCode] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
   
@@ -46,8 +47,20 @@ const Profile = () => {
     fetchProfile();
     if (user?.role === 'PATIENT') {
       fetchQRCode();
+      fetchMedicalRecords();
     }
   }, [user]);
+
+  const fetchMedicalRecords = async () => {
+    try {
+      // Assumes backend endpoint for patient medical records
+      const response = await api.get(`/api/medical-records/patient/${user.id}`);
+      setMedicalRecords(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      setMedicalRecords([]);
+      console.error('Error fetching medical records:', error);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -203,14 +216,9 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            My Profile
-          </h1>
-          <p className="text-gray-600">
-            Manage your personal information and health card
-          </p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">My Profile</h1>
+          <p className="text-gray-600">Manage your personal information and health card</p>
         </motion.div>
-
         <div className="grid lg:grid-cols-3 gap-6">
           {/* QR Code & Profile Picture Card */}
           <motion.div
@@ -219,6 +227,7 @@ const Profile = () => {
             transition={{ delay: 0.2 }}
             className="lg:col-span-1"
           >
+            {/* ...existing code for avatar, QR, etc... */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-center">Health Card</CardTitle>
@@ -248,7 +257,6 @@ const Profile = () => {
                         </span>
                       </motion.div>
                     )}
-                    
                     {isEditing && (
                       <label className="absolute bottom-0 right-0 bg-[#4CAF50] p-2 rounded-full cursor-pointer hover:bg-[#45a049] transition-colors">
                         <Camera className="w-5 h-5 text-white" />
@@ -261,488 +269,494 @@ const Profile = () => {
                       </label>
                     )}
                   </div>
-
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {profile?.name || 'User'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Patient ID: {profile?.id ? `PAT-${String(profile.id).padStart(6, '0')}` : 'N/A'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {profile?.role || 'PATIENT'}
-                    </p>
-                  </div>
-
-                  {/* QR Code */}
-                  {user?.role === 'PATIENT' && (
-                    <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300">
-                      {qrCode && qrCode.qrCodeImage ? (
-                        <div className="w-48 h-48 mx-auto">
-                          <img 
-                            src={qrCode.qrCodeImage} 
-                            alt="Patient QR Code" 
-                            className="w-full h-full object-contain"
-                          />
-                          <p className="text-xs text-gray-500 mt-2 text-center">Scan for quick access</p>
-                        </div>
-                      ) : (
-                        <div className="w-48 h-48 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                          <div className="text-center">
-                            <QrCode className="w-16 h-16 mx-auto text-gray-400 mb-2" />
-                            <p className="text-xs text-gray-500">Loading QR Code...</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {user?.role === 'PATIENT' && qrCode && (
-                    <div className="space-y-2">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => window.print()}
-                      >
-                        <QrCode className="w-4 h-4 mr-2" />
-                        Print Card
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={downloadQRCode}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download QR
-                      </Button>
-                    </div>
-                  )}
-
-                  <Badge variant="success" className="w-full justify-center">
-                    Active Member
-                  </Badge>
-                  
-                  <Button
-                    onClick={() => setShowPasswordModal(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Change Password
-                  </Button>
+                                                      <div>
+                                                        <h3 className="text-xl font-bold text-gray-800">
+                                                          {profile?.name || 'User'}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600">
+                                                          Patient ID: {profile?.id ? `PAT-${String(profile.id).padStart(6, '0')}` : 'N/A'}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                          {profile?.role || 'PATIENT'}
+                                                        </p>
+                                                      </div>
+                                                      {/* QR Code (show for all users if available) */}
+                                                      {qrCode && qrCode.qrCodeImage && (
+                                                        <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300">
+                                                          <div className="w-48 h-48 mx-auto">
+                                                            <img 
+                                                              src={qrCode.qrCodeImage} 
+                                                              alt="User QR Code" 
+                                                              className="w-full h-full object-contain"
+                                                            />
+                                                            <p className="text-xs text-gray-500 mt-2 text-center">Scan for quick access</p>
+                                                          </div>
+                                                        </div>
+                                                      )}
+                                                      {qrCode && (
+                                                        <div className="space-y-2">
+                                                          <Button
+                                                            variant="outline"
+                                                            className="w-full"
+                                                            onClick={() => window.print()}
+                                                          >
+                                                            <QrCode className="w-4 h-4 mr-2" />
+                                                            Print Card
+                                                          </Button>
+                                                          <Button
+                                                            variant="outline"
+                                                            className="w-full"
+                                                            onClick={downloadQRCode}
+                                                          >
+                                                            <Download className="w-4 h-4 mr-2" />
+                                                            Download QR
+                                                          </Button>
+                                                        </div>
+                                                      )}
+                                                      <Badge variant="success" className="w-full justify-center">
+                                                        Active Member
+                                                      </Badge>
+                                                      <Button
+                                                        onClick={() => setShowPasswordModal(true)}
+                                                        variant="outline"
+                                                        className="w-full"
+                                                      >
+                                                        <Lock className="w-4 h-4 mr-2" />
+                                                        Change Password
+                                                      </Button>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Profile Information Card */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Personal Information</CardTitle>
-                  {!isEditing ? (
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Edit2 className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleCancel}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleSave}
-                        disabled={saving}
-                        size="sm"
-                        className="bg-[#4CAF50] hover:bg-[#45a049]"
-                      >
-                        {saving ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                          />
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 mr-2" />
-                            Save
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="space-y-4"
-                  >
-                    <Input
-                      label="Full Name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone Number"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+1234567890"
-                      />
-                      <Input
-                        label="Date of Birth"
-                        name="dateOfBirth"
-                        type="date"
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <Select
-                        label="Gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </Select>
-                      <Select
-                        label="Blood Type"
-                        name="bloodType"
-                        value={formData.bloodType}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select Blood Type</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                      </Select>
-                    </div>
-
-                    <Input
-                      label="Address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      placeholder="Enter your full address"
-                    />
-                  </motion.div>
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Full Name</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.name || 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Email</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.email || 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Phone className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Phone</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.phone || 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Date of Birth</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          }) : 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="w-5 h-5 text-pink-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Gender</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.gender || 'Not specified'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Heart className="w-5 h-5 text-red-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Blood Type</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.bloodType || 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 md:col-span-2">
-                      <div className="mt-1 w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-5 h-5 text-indigo-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Address</p>
-                        <p className="text-lg font-semibold text-gray-800">
-                          {profile?.address || 'Not set'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Emergency Contact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-red-600" />
-                  Emergency Contact
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <Input
-                      label="Emergency Contact Name"
-                      name="emergencyContact"
-                      value={formData.emergencyContact}
-                      onChange={handleChange}
-                      placeholder="Contact person name"
-                    />
-                    <Input
-                      label="Emergency Phone"
-                      name="emergencyPhone"
-                      type="tel"
-                      value={formData.emergencyPhone}
-                      onChange={handleChange}
-                      placeholder="+1234567890"
-                    />
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-gray-600">Contact Name</p>
-                      <p className="text-lg font-semibold text-gray-800">
-                        {profile?.emergencyContact || 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Contact Phone</p>
-                      <p className="text-lg font-semibold text-gray-800">
-                        {profile?.emergencyPhone || 'Not set'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Medical Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                  Medical Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Allergies
-                      </label>
-                      <textarea
-                        name="allergies"
-                        value={formData.allergies}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                        placeholder="List any allergies (e.g., penicillin, peanuts, etc.)"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Current Medications
-                      </label>
-                      <textarea
-                        name="medications"
-                        value={formData.medications}
-                        onChange={handleChange}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
-                        placeholder="List any current medications"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <AlertCircle className="w-5 h-5 text-yellow-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-600 mb-1">Allergies</p>
-                        <p className="text-base text-gray-800">
-                          {profile?.allergies || 'No allergies recorded'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Pill className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-600 mb-1">Current Medications</p>
-                        <p className="text-base text-gray-800">
-                          {profile?.medications || 'No medications recorded'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Password Change Modal */}
-        <AnimatePresence>
-          {showPasswordModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-              onClick={() => setShowPasswordModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md"
-              >
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Change Password</CardTitle>
-                      <button
-                        onClick={() => setShowPasswordModal(false)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleChangePassword} className="space-y-4">
-                      <Input
-                        label="Current Password"
-                        name="currentPassword"
-                        type="password"
-                        value={passwordData.currentPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
-                      <Input
-                        label="New Password"
-                        name="newPassword"
-                        type="password"
-                        value={passwordData.newPassword}
-                        onChange={handlePasswordChange}
-                        required
-                        minLength={6}
-                      />
-                      <Input
-                        label="Confirm New Password"
-                        name="confirmPassword"
-                        type="password"
-                        value={passwordData.confirmPassword}
-                        onChange={handlePasswordChange}
-                        required
-                        minLength={6}
-                      />
-                      <Button
-                        type="submit"
-                        className="w-full bg-[#4CAF50] hover:bg-[#45a049]"
-                      >
-                        <Lock className="w-4 h-4 mr-2" />
-                        Change Password
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-};
+                                              {/* Right Section: Profile Info, Medical Records, etc. */}
+                                              <motion.div
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.3 }}
+                                                className="lg:col-span-2 space-y-6"
+                                              >
+                                                {/* Medical Records Section (for patients) - moved to right/wider section */}
+                                                {user?.role === 'PATIENT' && (
+                                                  <Card className="mt-2 p-6 shadow-lg border-2 border-green-200">
+                                                    <CardHeader>
+                                                      <CardTitle className="text-2xl font-bold text-green-700 mb-2">My Medical Records</CardTitle>
+                                                      <p className="text-gray-600 text-base mb-2">Below are your recent medical records. Click and drag to scroll if there are many records.</p>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                      {medicalRecords.length > 0 ? (
+                                                        <div className="overflow-x-auto rounded-lg">
+                                                          <table className="min-w-full bg-white text-base divide-y divide-gray-200">
+                                                            <thead className="bg-green-50">
+                                                              <tr>
+                                                                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800 uppercase">Date</th>
+                                                                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800 uppercase">Diagnosis</th>
+                                                                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800 uppercase">Treatment</th>
+                                                                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800 uppercase">Prescription</th>
+                                                                <th className="px-6 py-4 text-left text-sm font-semibold text-green-800 uppercase">Notes</th>
+                                                              </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-gray-100">
+                                                              {medicalRecords.map(record => (
+                                                                <tr key={record.id} className="hover:bg-green-50 transition-colors">
+                                                                  <td className="px-6 py-4 whitespace-nowrap font-mono text-gray-700">{record.recordDate ? new Date(record.recordDate).toLocaleString() : ''}</td>
+                                                                  <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">{record.diagnosis}</td>
+                                                                  <td className="px-6 py-4 whitespace-nowrap text-gray-800">{record.treatment}</td>
+                                                                  <td className="px-6 py-4 whitespace-nowrap text-gray-800">{record.prescription}</td>
+                                                                  <td className="px-6 py-4 whitespace-nowrap text-gray-800">{record.notes}</td>
+                                                                </tr>
+                                                              ))}
+                                                            </tbody>
+                                                          </table>
+                                                        </div>
+                                                      ) : (
+                                                        <div className="text-center py-12 text-gray-500">
+                                                          <FileText className="w-16 h-16 mx-auto mb-6 opacity-50" />
+                                                          <p className="text-lg">No medical records found</p>
+                                                        </div>
+                                                      )}
+                                                    </CardContent>
+                                                  </Card>
+                                                )}
+                                                {/* Basic Information */}
+                                                <Card>
+                                                  <CardHeader>
+                                                    <div className="flex items-center justify-between">
+                                                      <CardTitle>Personal Information</CardTitle>
+                                                      {!isEditing ? (
+                                                        <Button
+                                                          onClick={() => setIsEditing(true)}
+                                                          variant="outline"
+                                                          size="sm"
+                                                        >
+                                                          <Edit2 className="w-4 h-4 mr-2" />
+                                                          Edit
+                                                        </Button>
+                                                      ) : (
+                                                        <div className="flex gap-2">
+                                                          <Button
+                                                            onClick={handleCancel}
+                                                            variant="ghost"
+                                                            size="sm"
+                                                          >
+                                                            <X className="w-4 h-4 mr-2" />
+                                                            Cancel
+                                                          </Button>
+                                                          <Button
+                                                            onClick={handleSave}
+                                                            disabled={saving}
+                                                            size="sm"
+                                                            className="bg-[#4CAF50] hover:bg-[#45a049]"
+                                                          >
+                                                            {saving ? (
+                                                              <motion.div
+                                                                animate={{ rotate: 360 }}
+                                                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                                                              />
+                                                            ) : (
+                                                              <>
+                                                                <Save className="w-4 h-4 mr-2" />
+                                                                Save
+                                                              </>
+                                                            )}
+                                                          </Button>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  </CardHeader>
+                                                  <CardContent>
+                                                    {isEditing ? (
+                                                      <motion.div
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        className="space-y-4"
+                                                      >
+                                                        <Input
+                                                          label="Full Name"
+                                                          name="name"
+                                                          value={formData.name}
+                                                          onChange={handleChange}
+                                                          required
+                                                        />
+                                                        <div className="grid md:grid-cols-2 gap-4">
+                                                          <Input
+                                                            label="Phone Number"
+                                                            name="phone"
+                                                            type="tel"
+                                                            value={formData.phone}
+                                                            onChange={handleChange}
+                                                            placeholder="+1234567890"
+                                                          />
+                                                          <Input
+                                                            label="Date of Birth"
+                                                            name="dateOfBirth"
+                                                            type="date"
+                                                            value={formData.dateOfBirth}
+                                                            onChange={handleChange}
+                                                          />
+                                                        </div>
+                                                        <div className="grid md:grid-cols-2 gap-4">
+                                                          <Select
+                                                            label="Gender"
+                                                            name="gender"
+                                                            value={formData.gender}
+                                                            onChange={handleChange}
+                                                          >
+                                                            <option value="">Select Gender</option>
+                                                            <option value="Male">Male</option>
+                                                            <option value="Female">Female</option>
+                                                            <option value="Other">Other</option>
+                                                          </Select>
+                                                          <Select
+                                                            label="Blood Type"
+                                                            name="bloodType"
+                                                            value={formData.bloodType}
+                                                            onChange={handleChange}
+                                                          >
+                                                            <option value="">Select Blood Type</option>
+                                                            <option value="A+">A+</option>
+                                                            <option value="A-">A-</option>
+                                                            <option value="B+">B+</option>
+                                                            <option value="B-">B-</option>
+                                                            <option value="AB+">AB+</option>
+                                                            <option value="AB-">AB-</option>
+                                                            <option value="O+">O+</option>
+                                                            <option value="O-">O-</option>
+                                                          </Select>
+                                                        </div>
+                                                        <Input
+                                                          label="Address"
+                                                          name="address"
+                                                          value={formData.address}
+                                                          onChange={handleChange}
+                                                          placeholder="Enter your full address"
+                                                        />
+                                                      </motion.div>
+                                                    ) : (
+                                                      <div className="grid md:grid-cols-2 gap-6">
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <User className="w-5 h-5 text-blue-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Full Name</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.name || 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <Mail className="w-5 h-5 text-green-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Email</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.email || 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <Phone className="w-5 h-5 text-purple-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Phone</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.phone || 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <Calendar className="w-5 h-5 text-orange-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Date of Birth</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', {
+                                                                year: 'numeric',
+                                                                month: 'long',
+                                                                day: 'numeric'
+                                                              }) : 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <User className="w-5 h-5 text-pink-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Gender</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.gender || 'Not specified'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <Heart className="w-5 h-5 text-red-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Blood Type</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.bloodType || 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3 md:col-span-2">
+                                                          <div className="mt-1 w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <MapPin className="w-5 h-5 text-indigo-600" />
+                                                          </div>
+                                                          <div>
+                                                            <p className="text-sm text-gray-600">Address</p>
+                                                            <p className="text-lg font-semibold text-gray-800">
+                                                              {profile?.address || 'Not set'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </CardContent>
+                                                </Card>
+                                                {/* Emergency Contact */}
+                                                <Card>
+                                                  <CardHeader>
+                                                    <CardTitle className="flex items-center gap-2">
+                                                      <Shield className="w-5 h-5 text-red-600" />
+                                                      Emergency Contact
+                                                    </CardTitle>
+                                                  </CardHeader>
+                                                  <CardContent>
+                                                    {isEditing ? (
+                                                      <div className="grid md:grid-cols-2 gap-4">
+                                                        <Input
+                                                          label="Emergency Contact Name"
+                                                          name="emergencyContact"
+                                                          value={formData.emergencyContact}
+                                                          onChange={handleChange}
+                                                          placeholder="Contact person name"
+                                                        />
+                                                        <Input
+                                                          label="Emergency Phone"
+                                                          name="emergencyPhone"
+                                                          type="tel"
+                                                          value={formData.emergencyPhone}
+                                                          onChange={handleChange}
+                                                          placeholder="+1234567890"
+                                                        />
+                                                      </div>
+                                                    ) : (
+                                                      <div className="grid md:grid-cols-2 gap-6">
+                                                        <div>
+                                                          <p className="text-sm text-gray-600">Contact Name</p>
+                                                          <p className="text-lg font-semibold text-gray-800">
+                                                            {profile?.emergencyContact || 'Not set'}
+                                                          </p>
+                                                        </div>
+                                                        <div>
+                                                          <p className="text-sm text-gray-600">Contact Phone</p>
+                                                          <p className="text-lg font-semibold text-gray-800">
+                                                            {profile?.emergencyPhone || 'Not set'}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </CardContent>
+                                                </Card>
+                                                {/* Medical Information */}
+                                                <Card>
+                                                  <CardHeader>
+                                                    <CardTitle className="flex items-center gap-2">
+                                                      <AlertCircle className="w-5 h-5 text-orange-600" />
+                                                      Medical Information
+                                                    </CardTitle>
+                                                  </CardHeader>
+                                                  <CardContent>
+                                                    {isEditing ? (
+                                                      <div className="space-y-4">
+                                                        <div>
+                                                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Allergies
+                                                          </label>
+                                                          <textarea
+                                                            name="allergies"
+                                                            value={formData.allergies}
+                                                            onChange={handleChange}
+                                                            rows={3}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                                                            placeholder="List any allergies (e.g., penicillin, peanuts, etc.)"
+                                                          />
+                                                        </div>
+                                                        <div>
+                                                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Current Medications
+                                                          </label>
+                                                          <textarea
+                                                            name="medications"
+                                                            value={formData.medications}
+                                                            onChange={handleChange}
+                                                            rows={3}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                                                            placeholder="List any current medications"
+                                                          />
+                                                        </div>
+                                                      </div>
+                                                    ) : (
+                                                      <div className="space-y-4">
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <AlertCircle className="w-5 h-5 text-yellow-600" />
+                                                          </div>
+                                                          <div className="flex-1">
+                                                            <p className="text-sm text-gray-600 mb-1">Allergies</p>
+                                                            <p className="text-base text-gray-800">
+                                                              {profile?.allergies || 'No allergies recorded'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-3">
+                                                          <div className="mt-1 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <Pill className="w-5 h-5 text-blue-600" />
+                                                          </div>
+                                                          <div className="flex-1">
+                                                            <p className="text-sm text-gray-600 mb-1">Current Medications</p>
+                                                            <p className="text-base text-gray-800">
+                                                              {profile?.medications || 'No medications recorded'}
+                                                            </p>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </CardContent>
+                                                </Card>
+                                              </motion.div>
+                                            </div>
+                                            {/* Password Change Modal */}
+                                            <AnimatePresence>
+                                              {showPasswordModal && (
+                                                <motion.div
+                                                  initial={{ opacity: 0 }}
+                                                  animate={{ opacity: 1 }}
+                                                  exit={{ opacity: 0 }}
+                                                  className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                                                  onClick={() => setShowPasswordModal(false)}
+                                                >
+                                                  <motion.div
+                                                    initial={{ scale: 0.9 }}
+                                                    animate={{ scale: 1 }}
+                                                    exit={{ scale: 0.9 }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                    <Card className="w-full max-w-md mx-auto">
+                                                      <CardHeader>
+                                                        <CardTitle>Change Password</CardTitle>
+                                                      </CardHeader>
+                                                      <CardContent>
+                                                        <form onSubmit={handleChangePassword} className="space-y-4">
+                                                          <Input
+                                                            label="Current Password"
+                                                            name="currentPassword"
+                                                            type="password"
+                                                            value={passwordData.currentPassword}
+                                                            onChange={handlePasswordChange}
+                                                            required
+                                                          />
+                                                          <Input
+                                                            label="New Password"
+                                                            name="newPassword"
+                                                            type="password"
+                                                            value={passwordData.newPassword}
+                                                            onChange={handlePasswordChange}
+                                                            required
+                                                            minLength={6}
+                                                          />
+                                                          <Input
+                                                            label="Confirm New Password"
+                                                            name="confirmPassword"
+                                                            type="password"
+                                                            value={passwordData.confirmPassword}
+                                                            onChange={handlePasswordChange}
+                                                            required
+                                                            minLength={6}
+                                                          />
+                                                          <Button
+                                                            type="submit"
+                                                            className="w-full bg-[#4CAF50] hover:bg-[#45a049]"
+                                                          >
+                                                            <Lock className="w-4 h-4 mr-2" />
+                                                            Change Password
+                                                          </Button>
+                                                        </form>
+                                                      </CardContent>
+                                                    </Card>
+                                                  </motion.div>
+                                                </motion.div>
+                                              )}
+                                            </AnimatePresence>
+                                          </div>
+                                        </div>
+                                      )
+}
 
 export default Profile;
