@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
@@ -10,6 +11,7 @@ import { endpoints } from '../api/endpoints';
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
@@ -129,6 +131,31 @@ const Appointments = () => {
     );
   }
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-8 max-w-md w-full text-center">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Login Required</h2>
+            <p className="text-gray-600 mb-4">Please log in to view your appointments.</p>
+            <Button onClick={() => navigate('/login')} className="bg-blue-600 hover:bg-blue-700 text-white">Login</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -215,6 +242,23 @@ const Appointments = () => {
                                 Reason: {appointment.reason}
                               </p>
                             )}
+                            {/* Show rejection reason if cancelled */}
+                            {appointment.status === 'CANCELLED' && appointment.notes && (
+                              <p className="text-sm text-red-600 mt-1 font-semibold">
+                                Cancelled: {appointment.notes}
+                              </p>
+                            )}
+                            {/* Show acceptance if completed/confirmed */}
+                            {(appointment.status === 'COMPLETED' && appointment.isPaid) && (
+                              <p className="text-sm text-green-600 mt-1 font-semibold">
+                                Appointment Completed
+                              </p>
+                            )}
+                            {(appointment.status === 'CONFIRMED' || (appointment.status === 'COMPLETED' && !appointment.isPaid)) && (
+                              <p className="text-sm text-green-600 mt-1 font-semibold">
+                                Appointment Accepted
+                              </p>
+                            )}
                           </div>
                           <Badge className={getStatusColor(appointment.status)}>
                             <span className="flex items-center gap-1">
@@ -248,45 +292,48 @@ const Appointments = () => {
                       </div>
 
                       {/* Actions */}
-                      {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+                      {/* Only allow payment if appointment is accepted and not paid */}
+                      {(appointment.status === 'CONFIRMED' || (appointment.status === 'COMPLETED' && !appointment.isPaid)) && appointment.isPaid === false && appointment.consultationFee && (
                         <div className="flex flex-col gap-2">
-                          {appointment.consultationFee && !appointment.isPaid && appointment.status === 'SCHEDULED' && (
-                            <Button
-                              size="sm"
-                              onClick={() => handlePayNow(appointment)}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                            >
-                              <DollarSign className="w-4 h-4 mr-2" />
-                              Pay Now (${appointment.consultationFee.toFixed(2)})
-                            </Button>
-                          )}
-                          {appointment.isPaid && (
-                            <Badge className="bg-green-100 text-green-800">
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Paid
-                            </Badge>
-                          )}
                           <Button
-                            variant="outline"
                             size="sm"
-                            onClick={() => handleCancelAppointment(appointment.appointmentId)}
-                            disabled={cancelingId === appointment.appointmentId}
-                            className="text-red-600 hover:bg-red-50 border-red-200"
+                            onClick={() => handlePayNow(appointment)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white"
                           >
-                            {cancelingId === appointment.appointmentId ? (
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"
-                              />
-                            ) : (
-                              <>
-                                <X className="w-4 h-4 mr-1" />
-                                Cancel
-                              </>
-                            )}
+                            <DollarSign className="w-4 h-4 mr-2" />
+                            Pay Now (${appointment.consultationFee.toFixed(2)})
                           </Button>
                         </div>
+                      )}
+                      {/* Show paid badge if paid */}
+                      {appointment.isPaid && (
+                        <Badge className="bg-green-100 text-green-800">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Paid
+                        </Badge>
+                      )}
+                      {/* Allow cancel if not completed/cancelled */}
+                      {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelAppointment(appointment.appointmentId)}
+                          disabled={cancelingId === appointment.appointmentId}
+                          className="text-red-600 hover:bg-red-50 border-red-200"
+                        >
+                          {cancelingId === appointment.appointmentId ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"
+                            />
+                          ) : (
+                            <>
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </>
+                          )}
+                        </Button>
                       )}
                     </div>
                   </CardContent>

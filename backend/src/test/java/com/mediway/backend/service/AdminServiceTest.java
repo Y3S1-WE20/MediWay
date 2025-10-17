@@ -319,7 +319,7 @@ class AdminServiceTest {
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(testAppointment);
 
         // When
-        Appointment result = adminService.updateAppointmentStatus(1L, "COMPLETED");
+    Appointment result = adminService.updateAppointmentStatus(1L, "COMPLETED", null);
 
         // Then
         assertEquals(Appointment.Status.COMPLETED, result.getStatus());

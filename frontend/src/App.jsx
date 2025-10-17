@@ -77,27 +77,15 @@ function App() {
             />
             <Route
               path="/paypal-checkout"
-              element={
-                <ProtectedRoute>
-                  <PayPalCheckout />
-                </ProtectedRoute>
-              }
+              element={<PayPalCheckout />}
             />
             <Route
               path="/payment-success"
-              element={
-                <ProtectedRoute>
-                  <PaymentSuccess />
-                </ProtectedRoute>
-              }
+              element={<PaymentSuccess />}
             />
             <Route
               path="/payment-cancel"
-              element={
-                <ProtectedRoute>
-                  <PaymentCancel />
-                </ProtectedRoute>
-              }
+              element={<PaymentCancel />}
             />
             {/* Reports route only for admin */}
             <Route

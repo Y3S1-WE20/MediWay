@@ -248,13 +248,13 @@ class AdminControllerTest {
     @DisplayName("Update appointment status - Success")
     void testUpdateAppointmentStatus() {
         testAppointment.setStatus(Appointment.Status.COMPLETED);
-        when(adminService.updateAppointmentStatus(1L, "COMPLETED")).thenReturn(testAppointment);
+    when(adminService.updateAppointmentStatus(1L, "COMPLETED", null)).thenReturn(testAppointment);
 
-        ResponseEntity<Appointment> response = adminController.updateAppointmentStatus(1L, "COMPLETED");
+    ResponseEntity<Appointment> response = adminController.updateAppointmentStatus(1L, "COMPLETED", null);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(Appointment.Status.COMPLETED, response.getBody().getStatus());
-        verify(adminService).updateAppointmentStatus(1L, "COMPLETED");
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(Appointment.Status.COMPLETED, response.getBody().getStatus());
+    verify(adminService).updateAppointmentStatus(1L, "COMPLETED", null);
     }
 }

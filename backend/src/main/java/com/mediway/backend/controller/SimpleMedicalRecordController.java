@@ -1,6 +1,8 @@
 package com.mediway.backend.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,28 +39,43 @@ public class SimpleMedicalRecordController {
     }
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MedicalRecord>> getPatientMedicalRecords(@PathVariable Long patientId) {
-        List<MedicalRecord> records = medicalRecordRepository.findByPatientIdOrderByRecordDateDesc(patientId);
-        return ResponseEntity.ok(records);
+    public ResponseEntity<List<Map<String, Object>>> getPatientMedicalRecords(@PathVariable Long patientId) {
+        List<?> rawList = medicalRecordRepository.findByPatientIdOrderByRecordDateDesc(patientId);
+        // Convert to List<Map<String, Object>>
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object obj : rawList) {
+            if (obj instanceof Map) {
+                result.add((Map<String, Object>) obj);
+            }
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<List<Map<String, Object>>> getDoctorMedicalRecords(@PathVariable Long doctorId) {
+        List<?> rawList = medicalRecordRepository.findByDoctorIdOrderByRecordDateDesc(doctorId);
+        // Convert to List<Map<String, Object>>
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object obj : rawList) {
+            if (obj instanceof Map) {
+                result.add((Map<String, Object>) obj);
+            }
+        }
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping
     public ResponseEntity<?> createMedicalRecord(
             @RequestBody MedicalRecord record,
             @org.springframework.web.bind.annotation.RequestHeader(value = "X-User-Id", required = false) Long userId) {
-        System.out.println("[DEBUG] Incoming MedicalRecord: " + record);
-        System.out.println("[DEBUG] Incoming userId: " + userId);
         if (userId != null) {
-            System.out.println("[DEBUG] Setting doctorId to userId: " + userId);
             record.setDoctorId(userId);
-        } else {
-            System.out.println("[DEBUG] No userId provided in header!");
         }
-        System.out.println("[DEBUG] After doctorId set, MedicalRecord: " + record);
         MedicalRecord savedRecord = medicalRecordRepository.save(record);
         return ResponseEntity.ok(java.util.Map.of(
             "success", true,
             "message", "Medical record created successfully!",
+            "id", savedRecord.getId(),
             "record", savedRecord
         ));
     }
@@ -75,6 +92,7 @@ public class SimpleMedicalRecordController {
                     return ResponseEntity.ok(java.util.Map.of(
                         "success", true,
                         "message", "Medical record updated successfully",
+                        "id", savedRecord.getId(),
                         "record", savedRecord
                     ));
                 })
@@ -86,17 +104,16 @@ public class SimpleMedicalRecordController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMedicalRecord(@PathVariable Long id) {
-        return medicalRecordRepository.findById(id)
-                .map(record -> {
-                    medicalRecordRepository.delete(record);
-                    return ResponseEntity.ok(java.util.Map.of(
-                        "success", true,
-                        "message", "Medical record deleted successfully"
-                    ));
-                })
-                .orElse(ResponseEntity.status(404).body(java.util.Map.of(
-                    "success", false,
-                    "message", "Medical record not found"
-                )));
+        if (!medicalRecordRepository.existsById(id)) {
+            return ResponseEntity.status(404).body(java.util.Map.of(
+                "success", false,
+                "message", "Medical record not found"
+            ));
+        }
+        medicalRecordRepository.deleteById(id);
+        return ResponseEntity.ok(java.util.Map.of(
+            "success", true,
+            "message", "Medical record deleted successfully"
+        ));
     }
 }

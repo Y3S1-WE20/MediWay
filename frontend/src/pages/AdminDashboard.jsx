@@ -31,6 +31,11 @@ const AdminDashboard = () => {
     phone: ''
   });
   const [searchUserTerm, setSearchUserTerm] = useState('');
+  const [searchPatientTerm, setSearchPatientTerm] = useState('');
+  const [searchAppointmentTerm, setSearchAppointmentTerm] = useState('');
+  const [searchPaymentTerm, setSearchPaymentTerm] = useState('');
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState('ALL');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
   const [loading, setLoading] = useState(false);
   const [showCreateDoctorModal, setShowCreateDoctorModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -488,25 +493,82 @@ const AdminDashboard = () => {
                 <CardTitle>Payments</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Search and Filter Controls */}
+                <div className="mb-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                      <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        placeholder="Search by payment ID, user ID, or amount..."
+                        value={searchPaymentTerm}
+                        onChange={(e) => setSearchPaymentTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    
+                    {/* Status Filter */}
+                    <select
+                      value={paymentStatusFilter}
+                      onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                    >
+                      <option value="ALL">All Statuses</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="FAILED">Failed</option>
+                      <option value="REFUNDED">Refunded</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  {payments.length > 0 ? (
-                    payments.map((payment) => (
+                  {payments.filter(payment => {
+                    const matchesSearch = 
+                      payment.id?.toString().includes(searchPaymentTerm) ||
+                      payment.userId?.toString().includes(searchPaymentTerm) ||
+                      payment.amount?.toString().includes(searchPaymentTerm);
+                    
+                    const matchesStatus = 
+                      paymentStatusFilter === 'ALL' || payment.status === paymentStatusFilter;
+                    
+                    return matchesSearch && matchesStatus;
+                  }).length > 0 ? (
+                    payments.filter(payment => {
+                      const matchesSearch = 
+                        payment.id?.toString().includes(searchPaymentTerm) ||
+                        payment.userId?.toString().includes(searchPaymentTerm) ||
+                        payment.amount?.toString().includes(searchPaymentTerm);
+                      
+                      const matchesStatus = 
+                        paymentStatusFilter === 'ALL' || payment.status === paymentStatusFilter;
+                      
+                      return matchesSearch && matchesStatus;
+                    }).map((payment) => (
                       <div key={payment.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-semibold text-lg">Payment ID: {payment.id}</h3>
                             <p className="text-sm text-gray-500">User ID: {payment.userId}</p>
-                            <p className="text-sm text-gray-600">Amount: ₹{payment.amount}</p>
-                            <p className="text-sm text-gray-600">Status: {payment.status}</p>
+                            <p className="text-sm text-gray-600 mt-1">Amount: ₹{payment.amount}</p>
                             <p className="text-sm text-gray-600">Date: {payment.paymentDate}</p>
                           </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            payment.status === 'COMPLETED' ? 'bg-green-500 text-white' : 
+                            payment.status === 'PENDING' ? 'bg-yellow-500 text-white' : 
+                            payment.status === 'FAILED' ? 'bg-red-500 text-white' : 
+                            payment.status === 'REFUNDED' ? 'bg-blue-500 text-white' : 
+                            'bg-gray-400 text-white'
+                          }`}>
+                            {payment.status}
+                          </span>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No payments found</p>
+                      <p>{searchPaymentTerm || paymentStatusFilter !== 'ALL' ? 'No payments match your search criteria' : 'No payments found'}</p>
                     </div>
                   )}
                 </div>
@@ -522,23 +584,45 @@ const AdminDashboard = () => {
                 <CardTitle>Patients</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Search patients by name, email, or ID..."
+                      value={searchPatientTerm}
+                      onChange={(e) => setSearchPatientTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  {patients.length > 0 ? (
-                    patients.map((patient) => (
+                  {patients.filter(patient =>
+                    patient.name?.toLowerCase().includes(searchPatientTerm.toLowerCase()) ||
+                    patient.email?.toLowerCase().includes(searchPatientTerm.toLowerCase()) ||
+                    patient.id?.toString().includes(searchPatientTerm)
+                  ).length > 0 ? (
+                    patients.filter(patient =>
+                      patient.name?.toLowerCase().includes(searchPatientTerm.toLowerCase()) ||
+                      patient.email?.toLowerCase().includes(searchPatientTerm.toLowerCase()) ||
+                      patient.id?.toString().includes(searchPatientTerm)
+                    ).map((patient) => (
                       <div key={patient.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-center">
                           <div>
                             <h3 className="font-semibold text-lg">{patient.name}</h3>
                             <p className="text-sm text-gray-500">{patient.email}</p>
+                            {patient.phone && <p className="text-sm text-gray-600 mt-1">Phone: {patient.phone}</p>}
                           </div>
-                          <div className="text-sm text-gray-600">ID: {patient.id}</div>
+                          <div className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">ID: {patient.id}</div>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No patients found</p>
+                      <p>{searchPatientTerm ? 'No patients match your search' : 'No patients found'}</p>
                     </div>
                   )}
                 </div>
@@ -555,27 +639,123 @@ const AdminDashboard = () => {
                 <CardTitle>Appointments</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {appointments.length > 0 ? (
-                    appointments.map((appt) => (
-                      <div key={appt.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-semibold text-lg">{appt.patientName || 'Patient'}</h3>
-                            <p className="text-sm text-gray-500">Doctor: {appt.doctorName || appt.doctorId}</p>
-                            <p className="text-sm text-gray-600">Date: {appt.date || appt.appointmentDate}</p>
-                          </div>
-                          <div className="text-sm text-gray-600">Status: {appt.status}</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No appointments found</p>
+                {/* Search and Filter Controls */}
+                <div className="mb-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                      <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        placeholder="Search by patient, doctor name, or ID..."
+                        value={searchAppointmentTerm}
+                        onChange={(e) => setSearchAppointmentTerm(e.target.value)}
+                        className="pl-10"
+                      />
                     </div>
-                  )}
+                    
+                    {/* Status Filter */}
+                    <select
+                      value={appointmentStatusFilter}
+                      onChange={(e) => setAppointmentStatusFilter(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                    >
+                      <option value="ALL">All Statuses</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="SCHEDULED">Scheduled</option>
+                      <option value="CONFIRMED">Confirmed</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </select>
+                  </div>
                 </div>
+
+                {appointments.filter(appt => {
+                  const matchesSearch = 
+                    appt.patientName?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                    appt.patient?.name?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                    appt.doctorName?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                    appt.doctor?.name?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                    appt.patientId?.toString().includes(searchAppointmentTerm) ||
+                    appt.doctorId?.toString().includes(searchAppointmentTerm);
+                  
+                  const matchesStatus = 
+                    appointmentStatusFilter === 'ALL' || appt.status === appointmentStatusFilter;
+                  
+                  return matchesSearch && matchesStatus;
+                }).length > 0 ? (
+                  <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Patient Name</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Patient ID</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Doctor Name</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Doctor ID</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Time</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {appointments.filter(appt => {
+                          const matchesSearch = 
+                            appt.patientName?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                            appt.patient?.name?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                            appt.doctorName?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                            appt.doctor?.name?.toLowerCase().includes(searchAppointmentTerm.toLowerCase()) ||
+                            appt.patientId?.toString().includes(searchAppointmentTerm) ||
+                            appt.doctorId?.toString().includes(searchAppointmentTerm);
+                          
+                          const matchesStatus = 
+                            appointmentStatusFilter === 'ALL' || appt.status === appointmentStatusFilter;
+                          
+                          return matchesSearch && matchesStatus;
+                        }).map((appt, idx) => {
+                          const dateObj = appt.appointmentDate ? new Date(appt.appointmentDate) : null;
+                          const date = dateObj ? dateObj.toISOString().split('T')[0] : (appt.date || '');
+                          const time = dateObj ? dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : (appt.time || '--:--');
+                          const canAction = appt.status === 'SCHEDULED' || appt.status === 'PENDING';
+                          return (
+                            <tr key={appt.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 font-medium text-gray-900">{appt.patientName || appt.patient?.name || `Patient ${appt.patientId}`}</td>
+                              <td className="px-6 py-4 text-gray-700">{appt.patientId}</td>
+                              <td className="px-6 py-4 text-gray-700">{appt.doctorName || appt.doctor?.name || `Doctor ${appt.doctorId}`}</td>
+                              <td className="px-6 py-4 text-gray-700">{appt.doctorId}</td>
+                              <td className="px-6 py-4 text-gray-700">{date}</td>
+                              <td className="px-6 py-4 text-gray-700">{time}</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${appt.status === 'COMPLETED' ? 'bg-green-500 text-white' : appt.status === 'CONFIRMED' || appt.status === 'SCHEDULED' ? 'bg-blue-500 text-white' : appt.status === 'CANCELLED' ? 'bg-gray-500 text-white' : appt.status === 'PENDING' ? 'bg-red-500 text-white' : 'bg-gray-400 text-white'}`}>{appt.status}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                {canAction ? (
+                                  <div className="flex gap-2">
+                                    <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={async () => {
+                                      // Accept: set status to COMPLETED
+                                      await fetch(`http://localhost:8080/admin/appointments/${appt.id}/status?status=COMPLETED`, { method: 'PUT' });
+                                      fetchDashboardData();
+                                    }}>Accept</Button>
+                                    <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={async () => {
+                                      const reason = prompt('Enter rejection reason:');
+                                      if (!reason) return;
+                                      await fetch(`http://localhost:8080/admin/appointments/${appt.id}/status?status=CANCELLED&reason=${encodeURIComponent(reason)}`, { method: 'PUT' });
+                                      fetchDashboardData();
+                                    }}>Reject</Button>
+                                  </div>
+                                ) : null}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>{searchAppointmentTerm || appointmentStatusFilter !== 'ALL' ? 'No appointments match your search criteria' : 'No appointments found'}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -14,27 +14,36 @@ function PaymentSuccess() {
   useEffect(() => {
     const executePayment = async () => {
       try {
-        // Get payment ID from URL params or session storage
+        // Get payment ID and token from URL params or session storage
         const paymentId = searchParams.get('paymentId') || sessionStorage.getItem('pendingPaymentId');
         const appointmentId = searchParams.get('appointmentId') || sessionStorage.getItem('pendingAppointmentId');
-        const transactionId = searchParams.get('token') || 'MOCK-' + Date.now();
+        const token = searchParams.get('token') || sessionStorage.getItem('paypalToken');
+        const payerId = searchParams.get('PayerID') || sessionStorage.getItem('paypalPayerId');
 
-        if (!paymentId) {
-          setError('Payment ID not found');
+        if (!paymentId && !token) {
+          setError('Payment ID or token not found. Please log in and try again.');
           setStatus('error');
           return;
         }
 
-        console.log('Executing payment:', { paymentId, appointmentId, transactionId });
+        // Prefer token-based execution if available
+        let response;
+        if (token && payerId) {
+          response = await api.post('/paypal/execute-token', {
+            token,
+            payerId
+          });
+        } else if (paymentId) {
+          response = await api.post('/paypal/execute', {
+            paymentId,
+            payerId: payerId || 'MOCK-PAYER'
+          });
+        } else {
+          setError('Missing payment information.');
+          setStatus('error');
+          return;
+        }
 
-        // Execute the payment
-        const response = await api.post('/payments/execute', {
-          paymentId: paymentId,
-          transactionId: transactionId
-        });
-
-        console.log('Payment executed:', response.data);
-        
         if (response.data.success) {
           setPaymentData({
             paymentId: response.data.paymentId,
@@ -50,8 +59,8 @@ function PaymentSuccess() {
         // Clear pending payment from session
         sessionStorage.removeItem('pendingPaymentId');
         sessionStorage.removeItem('pendingAppointmentId');
-
-        setStatus('success');
+        sessionStorage.removeItem('paypalToken');
+        sessionStorage.removeItem('paypalPayerId');
       } catch (err) {
         console.error('Payment execution error:', err);
         setError(err.response?.data?.error || err.message || 'Failed to complete payment');

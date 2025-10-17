@@ -1,6 +1,10 @@
 package com.mediway.backend.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
@@ -128,7 +133,7 @@ class SimpleMedicalRecordControllerTest {
                 .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.diagnosis").value("Test diagnosis"));
+                .andExpect(jsonPath("$.record.diagnosis").value("Test diagnosis"));
 
         verify(medicalRecordRepository).save(any(MedicalRecord.class));
     }
@@ -214,7 +219,13 @@ class SimpleMedicalRecordControllerTest {
     @DisplayName("Get medical records by patient ID - Success")
     void getMedicalRecordsByPatientId_Success() throws Exception {
         // Given
-        when(medicalRecordRepository.findAll()).thenReturn(Arrays.asList(testMedicalRecord));
+    List<Map<String, Object>> mockResult = new ArrayList<>();
+    Map<String, Object> recordMap = new HashMap<>();
+    recordMap.put("id", 1);
+    recordMap.put("diagnosis", "Test diagnosis");
+    mockResult.add(recordMap);
+
+    when(medicalRecordRepository.findByPatientIdOrderByRecordDateDesc(anyLong())).thenReturn((List)mockResult);
 
         // When & Then
         mockMvc.perform(get("/medical-records/patient/1"))
@@ -223,14 +234,21 @@ class SimpleMedicalRecordControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].diagnosis").value("Test diagnosis"));
 
-        verify(medicalRecordRepository).findAll();
+        verify(medicalRecordRepository).findByPatientIdOrderByRecordDateDesc(1L);
     }
 
     @Test
     @DisplayName("Get medical records by doctor ID - Success")
     void getMedicalRecordsByDoctorId_Success() throws Exception {
         // Given
-        when(medicalRecordRepository.findAll()).thenReturn(Arrays.asList(testMedicalRecord));
+        List<Map<String, Object>> mockResult = new ArrayList<>();
+        Map<String, Object> recordMap = new HashMap<>();
+        recordMap.put("id", 1);
+        recordMap.put("diagnosis", "Test diagnosis");
+        recordMap.put("treatment", "Test treatment");
+        mockResult.add(recordMap);
+
+        when(medicalRecordRepository.findByDoctorIdOrderByRecordDateDesc(anyLong())).thenReturn((List)mockResult);
 
         // When & Then
         mockMvc.perform(get("/medical-records/doctor/1"))
@@ -239,6 +257,6 @@ class SimpleMedicalRecordControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].treatment").value("Test treatment"));
 
-        verify(medicalRecordRepository).findAll();
+        verify(medicalRecordRepository).findByDoctorIdOrderByRecordDateDesc(1L);
     }
 }
