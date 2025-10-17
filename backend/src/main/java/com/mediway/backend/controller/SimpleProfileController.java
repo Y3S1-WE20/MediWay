@@ -19,10 +19,14 @@ public class SimpleProfileController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<?> getProfile() {
+    public ResponseEntity<?> getProfile(@RequestHeader(value = "X-User-Id", required = false) Long userId) {
         try {
-            // For prototype, return first user or create a dummy response
-            Optional<User> userOpt = userRepository.findById(1L);
+            // Use userId from header, or default to 1 for prototype
+            if (userId == null) {
+                userId = 1L;
+            }
+            
+            Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
                 Map<String, Object> response = new HashMap<>();
@@ -35,7 +39,7 @@ public class SimpleProfileController {
                 return ResponseEntity.ok(response);
             } else {
                 Map<String, Object> error = new HashMap<>();
-                error.put("message", "No user profile found");
+                error.put("message", "User not found with ID: " + userId);
                 return ResponseEntity.status(404).body(error);
             }
         } catch (Exception e) {
@@ -46,9 +50,15 @@ public class SimpleProfileController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> updateProfile(
+            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestBody Map<String, Object> request) {
         try {
-            Long userId = 1L; // For prototype, use first user
+            // Use userId from header, or default to 1 for prototype
+            if (userId == null) {
+                userId = 1L;
+            }
+            
             Optional<User> userOpt = userRepository.findById(userId);
             
             if (userOpt.isEmpty()) {

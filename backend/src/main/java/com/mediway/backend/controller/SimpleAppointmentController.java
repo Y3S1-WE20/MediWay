@@ -68,13 +68,29 @@ public class SimpleAppointmentController {
 
     // Frontend expects appointments at /api/appointments/my
     @GetMapping("/my")
-    public ResponseEntity<?> getMyAppointments() {
-        // For prototype, return all appointments with full details
-        List<Appointment> appointments = appointmentRepository.findAll();
-        List<Map<String, Object>> detailedAppointments = appointments.stream()
-                .map(this::appointmentToMap)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(detailedAppointments);
+    public ResponseEntity<?> getMyAppointments(@RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        try {
+            // Use userId from header, or return all for prototype
+            List<Appointment> appointments;
+            if (userId != null) {
+                // Filter appointments for this specific user
+                appointments = appointmentRepository.findAll().stream()
+                        .filter(app -> app.getPatientId().equals(userId))
+                        .collect(Collectors.toList());
+            } else {
+                appointments = appointmentRepository.findAll();
+            }
+            
+            List<Map<String, Object>> detailedAppointments = appointments.stream()
+                    .map(this::appointmentToMap)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(detailedAppointments);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Error fetching appointments: " + e.getMessage()
+            ));
+        }
     }
 
     @GetMapping
@@ -94,8 +110,15 @@ public class SimpleAppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> createAppointment(
+            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestBody Map<String, Object> request) {
         try {
+            // Use userId from header, or default to 1
+            if (userId == null) {
+                userId = 1L;
+            }
+            
             // Extract data from request - frontend sends doctorId, appointmentDate, appointmentTime, reason
             Long doctorId = Long.parseLong(request.get("doctorId").toString());
             String dateStr = request.get("appointmentDate").toString();
@@ -107,9 +130,9 @@ public class SimpleAppointmentController {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime appointmentDateTime = LocalDateTime.parse(dateTimeStr, formatter);
             
-            // Create appointment
+            // Create appointment for the logged-in user
             Appointment appointment = new Appointment();
-            appointment.setPatientId(1L); // For prototype, use patient ID 1
+            appointment.setPatientId(userId); // Use the actual logged-in user ID
             appointment.setDoctorId(doctorId);
             appointment.setAppointmentDate(appointmentDateTime);
             appointment.setNotes(reason);

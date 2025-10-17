@@ -51,6 +51,7 @@ export const endpoints = {
   getMyReceipts: `${PAYMENTS}/receipts/my-receipts`,
   
   // Reports
+  getReportsSummary: `${REPORTS}/summary`,
   getReportSummary: `${REPORTS}/summary`,
   getComprehensiveReport: `${REPORTS}/patient/comprehensive`,
   getMedicalRecords: `${REPORTS}/medical-records`,

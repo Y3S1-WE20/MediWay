@@ -12,17 +12,17 @@ function PaymentCancel() {
   useEffect(() => {
     const cancelPayment = async () => {
       try {
-        const paymentId = searchParams.get('paymentId') || searchParams.get('token');
+        const paymentId = searchParams.get('paymentId') || sessionStorage.getItem('pendingPaymentId');
         
         if (paymentId) {
           console.log('Cancelling payment:', paymentId);
-          await api.post(`${endpoints.cancelPayment}?paymentId=${paymentId}`);
+          await api.post('/payments/cancel', { paymentId });
           console.log('Payment cancelled successfully');
         }
 
         // Clear pending payment from session
         sessionStorage.removeItem('pendingPaymentId');
-        sessionStorage.removeItem('pendingPaymentData');
+        sessionStorage.removeItem('pendingAppointmentId');
       } catch (error) {
         console.error('Error cancelling payment:', error);
       }

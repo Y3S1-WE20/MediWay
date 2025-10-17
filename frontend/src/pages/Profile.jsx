@@ -31,9 +31,10 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       const response = await api.get('/profile');
+      console.log('Profile data:', response.data);
       setProfile(response.data);
       setFormData({
-        fullName: response.data.fullName || '',
+        fullName: response.data.name || '',  // Backend returns 'name', not 'fullName'
         phone: response.data.phone || '',
       });
     } catch (error) {
@@ -60,9 +61,13 @@ const Profile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await api.put('/profile', formData);
+      const response = await api.put('/profile', {
+        name: formData.fullName,  // Send as 'name' to match backend
+        phone: formData.phone
+      });
+      console.log('Profile update response:', response.data);
       setProfile(response.data);
-      updateUser({ ...user, fullName: response.data.fullName, phone: response.data.phone });
+      updateUser({ ...user, name: response.data.name, phone: response.data.phone });
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (error) {
@@ -75,7 +80,7 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      fullName: profile?.fullName || '',
+      fullName: profile?.name || '',  // Backend returns 'name'
       phone: profile?.phone || '',
     });
     setIsEditing(false);
@@ -144,13 +149,13 @@ const Profile = () => {
 
                   <div>
                     <h3 className="text-xl font-bold text-gray-800">
-                      {profile?.fullName || user?.fullName}
+                      {profile?.name || user?.name || 'User'}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Patient ID: {profile?.userId?.substring(0, 8) || 'N/A'}
+                      Patient ID: {profile?.id ? `PAT-${profile.id}` : 'N/A'}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {profile?.role}
+                      {profile?.role || 'PATIENT'}
                     </p>
                   </div>
 
@@ -326,7 +331,7 @@ const Profile = () => {
                         <div>
                           <p className="text-sm text-gray-600">Full Name</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {user?.name}
+                            {profile?.name || user?.name || 'Not set'}
                           </p>
                         </div>
                       </div>
@@ -338,7 +343,7 @@ const Profile = () => {
                         <div>
                           <p className="text-sm text-gray-600">Email</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {user?.email}
+                            {profile?.email || user?.email || 'Not set'}
                           </p>
                         </div>
                       </div>
@@ -350,7 +355,7 @@ const Profile = () => {
                         <div>
                           <p className="text-sm text-gray-600">Phone</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {user?.phone}
+                            {profile?.phone || user?.phone || 'Not set'}
                           </p>
                         </div>
                       </div>
@@ -362,7 +367,7 @@ const Profile = () => {
                         <div>
                           <p className="text-sm text-gray-600">Date of Birth</p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString('en-US', {
+                            {profile?.dateOfBirth || user?.dateOfBirth ? new Date(profile?.dateOfBirth || user.dateOfBirth).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric'
@@ -380,7 +385,7 @@ const Profile = () => {
                         <div>
                           <p className="text-sm text-gray-600">Gender</p>
                           <p className="text-lg font-semibold text-gray-800 capitalize">
-                            {user?.gender || 'Not specified'}
+                            {profile?.gender || user?.gender || 'Not specified'}
                           </p>
                         </div>
                       </div>
