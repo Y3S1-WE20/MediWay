@@ -315,4 +315,195 @@ class DoctorServiceTest {
         assertTrue(result.isEmpty());
         verify(doctorRepository, times(1)).findAll();
     }
+
+    @Test
+    @DisplayName("Test 16: Update doctor with null values (should not update)")
+    void testUpdateDoctor_NullValues() throws Exception {
+        // Given
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+
+        // When
+        Doctor updated = doctorService.update(1L, null, null, null, null);
+
+        // Then
+        assertNotNull(updated);
+        assertEquals("Dr. Smith", updated.getName()); // Should remain unchanged
+        assertEquals("smith@hospital.com", updated.getEmail()); // Should remain unchanged
+        assertEquals("Cardiology", updated.getSpecialization()); // Should remain unchanged
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
+
+    @Test
+    @DisplayName("Test 17: Update doctor with whitespace strings (should not update)")
+    void testUpdateDoctor_WhitespaceStrings() throws Exception {
+        // Given
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+
+        // When
+        Doctor updated = doctorService.update(1L, "   ", "  ", "   ", null);
+
+        // Then
+        assertNotNull(updated);
+        assertEquals("Dr. Smith", updated.getName()); // Should remain unchanged
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
+
+    @Test
+    @DisplayName("Test 18: Update doctor with photo")
+    void testUpdateDoctor_WithPhoto() throws Exception {
+        // Given
+        byte[] photoBytes = "updated-photo-data".getBytes();
+        when(photoFile.isEmpty()).thenReturn(false);
+        when(photoFile.getBytes()).thenReturn(photoBytes);
+        when(photoFile.getContentType()).thenReturn("image/png");
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+
+        // When
+        Doctor updated = doctorService.update(1L, "Dr. Smith", "smith@hospital.com", 
+                                              "Cardiology", photoFile);
+
+        // Then
+        assertNotNull(updated);
+        verify(photoFile, times(1)).getBytes();
+        verify(photoFile, times(1)).getContentType();
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
+
+    @Test
+    @DisplayName("Test 19: LoginRequest - successful login")
+    void testLoginWithRequest_Success() {
+        // Given
+        com.mediway.backend.dto.request.LoginRequest request = new com.mediway.backend.dto.request.LoginRequest();
+        request.setEmail("smith@hospital.com");
+        request.setPassword("password123");
+        
+        when(doctorRepository.findByEmail("smith@hospital.com")).thenReturn(Optional.of(testDoctor));
+
+        // When
+        com.mediway.backend.dto.response.LoginResponse response = doctorService.login(request);
+
+        // Then
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        assertEquals(1L, response.getUserId());
+        assertEquals("Dr. Smith", response.getName());
+        assertEquals("DOCTOR", response.getRole());
+        verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
+    }
+
+    @Test
+    @DisplayName("Test 20: LoginRequest - failed login (wrong password)")
+    void testLoginWithRequest_WrongPassword() {
+        // Given
+        com.mediway.backend.dto.request.LoginRequest request = new com.mediway.backend.dto.request.LoginRequest();
+        request.setEmail("smith@hospital.com");
+        request.setPassword("wrongPassword");
+        
+        when(doctorRepository.findByEmail("smith@hospital.com")).thenReturn(Optional.of(testDoctor));
+
+        // When/Then
+        assertThrows(RuntimeException.class, () -> doctorService.login(request));
+        verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
+    }
+
+    @Test
+    @DisplayName("Test 21: LoginRequest - failed login (email not found)")
+    void testLoginWithRequest_EmailNotFound() {
+        // Given
+        com.mediway.backend.dto.request.LoginRequest request = new com.mediway.backend.dto.request.LoginRequest();
+        request.setEmail("nonexistent@hospital.com");
+        request.setPassword("password123");
+        
+        when(doctorRepository.findByEmail("nonexistent@hospital.com")).thenReturn(Optional.empty());
+
+        // When/Then
+        assertThrows(RuntimeException.class, () -> doctorService.login(request));
+        verify(doctorRepository, times(1)).findByEmail("nonexistent@hospital.com");
+    }
+
+    @Test
+    @DisplayName("Test 22: Get appointments by doctor with formatted details")
+    void testGetAppointmentsByDoctor_WithDetails() {
+        // Given
+        Appointment apt1 = new Appointment();
+        apt1.setId(1L);
+        apt1.setDoctorId(1L);
+        apt1.setPatientId(1L);
+        apt1.setAppointmentDate(LocalDateTime.of(2025, 10, 25, 10, 0));
+        apt1.setStatus(Appointment.Status.SCHEDULED);
+        apt1.setNotes("Regular checkup");
+
+        Appointment apt2 = new Appointment();
+        apt2.setId(2L);
+        apt2.setDoctorId(1L);
+        apt2.setPatientId(2L);
+        apt2.setAppointmentDate(LocalDateTime.of(2025, 10, 26, 14, 30));
+        apt2.setStatus(Appointment.Status.COMPLETED);
+        apt2.setNotes("Follow-up");
+
+        List<Appointment> appointments = Arrays.asList(apt1, apt2);
+        when(appointmentRepository.findByDoctorIdOrderByAppointmentDateDesc(1L)).thenReturn(appointments);
+
+        // When
+        java.util.List<java.util.Map<String, Object>> result = doctorService.getAppointmentsByDoctor(1L);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        
+        // Verify first appointment
+        java.util.Map<String, Object> firstApt = result.get(0);
+        assertEquals(1L, firstApt.get("id"));
+        assertEquals(1L, firstApt.get("patientId"));
+        assertEquals("SCHEDULED", firstApt.get("status"));
+        assertEquals("Regular checkup", firstApt.get("notes"));
+        
+        // Verify second appointment
+        java.util.Map<String, Object> secondApt = result.get(1);
+        assertEquals(2L, secondApt.get("id"));
+        assertEquals(2L, secondApt.get("patientId"));
+        assertEquals("COMPLETED", secondApt.get("status"));
+        assertEquals("Follow-up", secondApt.get("notes"));
+        
+        verify(appointmentRepository, times(1)).findByDoctorIdOrderByAppointmentDateDesc(1L);
+    }
+
+    @Test
+    @DisplayName("Test 23: Create doctor with empty photo")
+    void testCreateDoctor_WithEmptyPhoto() throws Exception {
+        // Given
+        when(photoFile.isEmpty()).thenReturn(true);
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+
+        // When
+        Doctor created = doctorService.create("Dr. Smith", "smith@hospital.com", "Cardiology", photoFile);
+
+        // Then
+        assertNotNull(created);
+        verify(photoFile, times(1)).isEmpty();
+        verify(photoFile, times(0)).getBytes(); // Should not be called for empty file
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
+
+    @Test
+    @DisplayName("Test 24: Update doctor with empty photo")
+    void testUpdateDoctor_WithEmptyPhoto() throws Exception {
+        // Given
+        when(photoFile.isEmpty()).thenReturn(true);
+        when(doctorRepository.findById(1L)).thenReturn(Optional.of(testDoctor));
+        when(doctorRepository.save(any(Doctor.class))).thenReturn(testDoctor);
+
+        // When
+        Doctor updated = doctorService.update(1L, "Dr. Smith", "smith@hospital.com", 
+                                              "Cardiology", photoFile);
+
+        // Then
+        assertNotNull(updated);
+        verify(photoFile, times(1)).isEmpty();
+        verify(photoFile, times(0)).getBytes(); // Should not be called for empty file
+        verify(doctorRepository, times(1)).save(any(Doctor.class));
+    }
 }

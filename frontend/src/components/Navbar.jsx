@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import logo from '../assets/logo.png';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/button';
 
@@ -67,16 +68,15 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
+          <Link to="/" className="flex items-center group">
+            <motion.img
+              src={logo}
+              alt="MediWay Logo"
+              className="h-10 w-auto"
+              whileHover={{ scale: 1.08, rotate: 5 }}
               transition={{ type: 'spring', stiffness: 400 }}
-            >
-              <Heart className="w-8 h-8 text-[#4CAF50] fill-[#4CAF50]" />
-            </motion.div>
-            <span className="text-2xl font-bold text-gray-800 group-hover:text-[#4CAF50] transition-colors">
-              MediWay
-            </span>
+              style={{ display: 'block' }}
+            />
           </Link>
 
           {/* Desktop Navigation */}

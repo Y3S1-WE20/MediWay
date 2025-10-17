@@ -27,7 +27,7 @@ function Dot({ active, onClick }) {
         height: 12,
         borderRadius: '50%',
         border: 'none',
-        background: active ? '#0ea5e9' : '#cbd5e1',
+        background: active ? '#22c55e' : '#d1fae5', // green-500 or green-100
         cursor: 'pointer',
         transition: 'all 0.3s'
       }}
@@ -67,8 +67,8 @@ function Hero() {
       overflow: 'hidden',
       height: '85vh',
       minHeight: 600,
-      background: '#000',
-      boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+      background: '#fff',
+      boxShadow: '0 20px 60px rgba(34,197,94,0.10)'
     }}>
       <img
         src={cur.img}
@@ -77,16 +77,16 @@ function Hero() {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          opacity: 0.85,
-          transition: 'opacity 0.5s'
+          opacity: 0.80,
+          transition: 'opacity 0.5s',
+          filter: 'grayscale(10%)'
         }}
       />
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)'
+        background: 'linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(255,255,255,0.7) 60%, rgba(255,255,255,0.95) 100%)'
       }} />
-      
       <div style={{
         position: 'absolute',
         inset: 0,
@@ -99,11 +99,11 @@ function Hero() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            background: 'rgba(14, 165, 233, 0.2)',
+            background: 'rgba(34,197,94,0.12)',
             backdropFilter: 'blur(10px)',
             padding: '8px 16px',
             borderRadius: 50,
-            color: '#93c5fd',
+            color: '#22c55e',
             fontSize: 14,
             fontWeight: 600,
             marginBottom: 20
@@ -111,21 +111,19 @@ function Hero() {
             <img src={logo} alt="MediWay" style={{ height: 24 }} />
             Trusted Healthcare Partner
           </div>
-          
           <h1 style={{
             margin: 0,
-            color: '#fff',
+            color: '#14532d',
             fontSize: 56,
             fontWeight: 800,
             lineHeight: 1.1,
             marginBottom: 16,
-            textShadow: '0 2px 20px rgba(0,0,0,0.5)'
+            textShadow: '0 2px 20px rgba(34,197,94,0.10)'
           }}>
             {cur.title}
           </h1>
-          
           <p style={{
-            color: '#e2e8f0',
+            color: '#166534',
             fontSize: 18,
             lineHeight: 1.6,
             marginBottom: 32,
@@ -133,55 +131,53 @@ function Hero() {
           }}>
             {cur.subtitle}
           </p>
-          
           <div style={{ display: 'flex', gap: 16 }}>
             <Link
               to="/appointments"
               style={{
                 padding: '16px 32px',
-                background: '#0ea5e9',
+                background: '#22c55e',
                 color: '#fff',
                 textDecoration: 'none',
                 borderRadius: 12,
                 fontWeight: 700,
                 fontSize: 16,
                 transition: 'all 0.3s',
-                boxShadow: '0 4px 14px rgba(14, 165, 233, 0.4)'
+                boxShadow: '0 4px 14px rgba(34,197,94,0.18)'
               }}
               onMouseEnter={e => {
-                e.target.style.background = '#0284c7';
+                e.target.style.background = '#16a34a';
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(14, 165, 233, 0.5)';
+                e.target.style.boxShadow = '0 6px 20px rgba(34,197,94,0.25)';
               }}
               onMouseLeave={e => {
-                e.target.style.background = '#0ea5e9';
+                e.target.style.background = '#22c55e';
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 14px rgba(14, 165, 233, 0.4)';
+                e.target.style.boxShadow = '0 4px 14px rgba(34,197,94,0.18)';
               }}
             >
               Book Appointment
             </Link>
-            
             <Link
               to="/register"
               style={{
                 padding: '16px 32px',
-                background: 'rgba(255, 255, 255, 0.15)',
+                background: 'rgba(34,197,94,0.08)',
                 backdropFilter: 'blur(10px)',
-                color: '#fff',
+                color: '#14532d',
                 textDecoration: 'none',
                 borderRadius: 12,
                 fontWeight: 700,
                 fontSize: 16,
-                border: '2px solid rgba(255, 255, 255, 0.3)',
+                border: '2px solid #22c55e',
                 transition: 'all 0.3s'
               }}
               onMouseEnter={e => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.25)';
+                e.target.style.background = 'rgba(34,197,94,0.18)';
                 e.target.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={e => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                e.target.style.background = 'rgba(34,197,94,0.08)';
                 e.target.style.transform = 'translateY(0)';
               }}
             >
@@ -303,11 +299,10 @@ function PatientStories() {
   useInterval(() => setCurrentIndex(prev => (prev + 1) % testimonials.length), 6000);
 
   const current = testimonials[currentIndex];
-
   return (
     <section style={{
       padding: '80px 0',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      background: 'linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%)',
       borderRadius: 24,
       position: 'relative',
       overflow: 'hidden'
@@ -318,14 +313,13 @@ function PatientStories() {
         right: -100,
         width: 300,
         height: 300,
-        background: 'radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(34,197,94,0.10) 0%, transparent 70%)',
         borderRadius: '50%'
       }} />
-
       <div style={{ textAlign: 'center', marginBottom: 60, position: 'relative', zIndex: 1 }}>
         <h2 style={{
           margin: 0,
-          color: '#fff',
+          color: '#14532d',
           fontSize: 42,
           fontWeight: 800,
           marginBottom: 12
@@ -333,7 +327,7 @@ function PatientStories() {
           Patient Stories
         </h2>
         <p style={{
-          color: '#94a3b8',
+          color: '#166534',
           fontSize: 18,
           maxWidth: 600,
           margin: '0 auto'
@@ -341,7 +335,6 @@ function PatientStories() {
           Real experiences from our patients—because your trust matters
         </p>
       </div>
-
       <div style={{
         maxWidth: 900,
         margin: '0 auto',
@@ -349,22 +342,21 @@ function PatientStories() {
         zIndex: 1
       }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'rgba(34,197,94,0.06)',
           backdropFilter: 'blur(10px)',
           borderRadius: 20,
           padding: 48,
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+          border: '1px solid #bbf7d0',
+          boxShadow: '0 20px 60px rgba(34,197,94,0.10)'
         }}>
           <FaQuoteLeft style={{
             fontSize: 40,
-            color: '#0ea5e9',
+            color: '#22c55e',
             opacity: 0.5,
             marginBottom: 20
           }} />
-
           <p style={{
-            color: '#e2e8f0',
+            color: '#166534',
             fontSize: 20,
             lineHeight: 1.7,
             marginBottom: 32,
@@ -372,7 +364,6 @@ function PatientStories() {
           }}>
             "{current.text}"
           </p>
-
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -386,12 +377,12 @@ function PatientStories() {
                 height: 70,
                 borderRadius: '50%',
                 objectFit: 'cover',
-                border: '3px solid #0ea5e9'
+                border: '3px solid #22c55e'
               }}
             />
             <div>
               <div style={{
-                color: '#fff',
+                color: '#14532d',
                 fontSize: 20,
                 fontWeight: 700,
                 marginBottom: 4
@@ -399,7 +390,7 @@ function PatientStories() {
                 {current.name}
               </div>
               <div style={{
-                color: '#94a3b8',
+                color: '#166534',
                 fontSize: 14,
                 marginBottom: 8
               }}>
@@ -413,7 +404,6 @@ function PatientStories() {
             </div>
           </div>
         </div>
-
         <div style={{
           display: 'flex',
           justifyContent: 'center',
