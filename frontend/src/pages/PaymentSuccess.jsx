@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import { endpoints } from '../api/endpoints';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 
@@ -10,7 +9,6 @@ function PaymentSuccess() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('processing'); // processing, success, error
   const [paymentData, setPaymentData] = useState(null);
-  const [receipt, setReceipt] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -152,27 +150,6 @@ function PaymentSuccess() {
           </div>
         )}
 
-        {/* Receipt Details */}
-        {receipt && (
-          <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
-            <h3 className="font-semibold mb-3 text-blue-900">Receipt Generated</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-blue-700">Receipt Number:</span>
-                <span className="font-mono font-semibold text-blue-900">{receipt.receiptNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blue-700">Transaction ID:</span>
-                <span className="font-mono text-xs text-blue-900">{receipt.transactionId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blue-700">Date:</span>
-                <span className="text-blue-900">{new Date(receipt.paymentDate).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button onClick={() => navigate('/payments')} variant="outline" className="flex-1">
@@ -182,16 +159,6 @@ function PaymentSuccess() {
             Go to Dashboard
           </Button>
         </div>
-
-        {receipt && (
-          <Button 
-            onClick={() => navigate(`/receipts/${receipt.receiptNumber}`)} 
-            variant="outline" 
-            className="w-full mt-3"
-          >
-            View Receipt
-          </Button>
-        )}
       </Card>
     </div>
   );

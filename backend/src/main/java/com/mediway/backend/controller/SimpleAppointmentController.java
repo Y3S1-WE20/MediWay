@@ -1,15 +1,5 @@
 package com.mediway.backend.controller;
 
-import com.mediway.backend.entity.Appointment;
-import com.mediway.backend.entity.Doctor;
-import com.mediway.backend.entity.User;
-import com.mediway.backend.repository.AppointmentRepository;
-import com.mediway.backend.repository.DoctorRepository;
-import com.mediway.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -17,9 +7,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.mediway.backend.entity.Appointment;
+import com.mediway.backend.repository.AppointmentRepository;
+import com.mediway.backend.repository.DoctorRepository;
+import com.mediway.backend.repository.UserRepository;
+
 @RestController
 @RequestMapping("/appointments")
-@CrossOrigin(origins = "http://localhost:5174")
 public class SimpleAppointmentController {
 
     @Autowired
@@ -58,10 +64,10 @@ public class SimpleAppointmentController {
             map.put("patientPhone", patient.getPhone());
         });
         
-        // Add payment info (default for prototype)
-        map.put("consultationFee", 500.00);
-        map.put("paymentStatus", "PENDING");
-        map.put("isPaid", false);
+    // Add payment info (default for prototype)
+    map.put("consultationFee", 500.00);
+    map.put("paymentStatus", "PENDING");
+    map.put("isPaid", false);
         
         return map;
     }

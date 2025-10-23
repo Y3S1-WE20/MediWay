@@ -40,11 +40,12 @@ export const endpoints = {
   
   // Payments
   paymentHealth: `${PAYMENTS}/health`,
-  createPayment: `${PAYMENTS}/create`,
-  executePayment: `${PAYMENTS}/execute`,
-  cancelPayment: `${PAYMENTS}/cancel`,
+  createPayment: `/paypal/create`,
+  executePayment: `/paypal/execute`,
+  executeTokenPayment: `/paypal/execute-token`,
+  cancelPayment: `/paypal/cancel`,
   getPayment: (id) => `${PAYMENTS}/${id}`,
-  getMyPayments: `${PAYMENTS}/my-payments`,
+  getMyPayments: `/paypal/my-payments`,
   getAppointmentPayments: (appointmentId) => `${PAYMENTS}/appointment/${appointmentId}`,
   getReceiptByPayment: (paymentId) => `${PAYMENTS}/receipt/payment/${paymentId}`,
   getReceiptByNumber: (receiptNumber) => `${PAYMENTS}/receipt/${receiptNumber}`,

@@ -1,40 +1,52 @@
 package com.mediway.backend.controller;
 
-import com.mediway.backend.entity.*;
-import com.mediway.backend.repository.*;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.element.Image;
-import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
-import com.itextpdf.io.image.ImageDataFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.mediway.backend.entity.Appointment;
+import com.mediway.backend.entity.Doctor;
+import com.mediway.backend.entity.Payment;
+import com.mediway.backend.entity.Receipt;
+import com.mediway.backend.entity.User;
+import com.mediway.backend.repository.AppointmentRepository;
+import com.mediway.backend.repository.DoctorRepository;
+import com.mediway.backend.repository.PaymentRepository;
+import com.mediway.backend.repository.ReceiptRepository;
+import com.mediway.backend.repository.UserRepository;
+
 @RestController
-@RequestMapping("/api/payments")
-@CrossOrigin(origins = "*")
+@RequestMapping("/payments")
 public class ReceiptController {
 
     @Autowired
@@ -232,10 +244,15 @@ public class ReceiptController {
                 userId = 1L;
             }
 
+            System.out.println("[ReceiptController] getMyReceipts called with userId=" + userId);
+
             List<Receipt> receipts = receiptRepository.findByUserIdOrderByIssueDateDesc(userId);
+            System.out.println("[ReceiptController] Receipts fetched: count=" + (receipts != null ? receipts.size() : 0));
             return ResponseEntity.ok(receipts);
 
         } catch (Exception e) {
+            System.err.println("[ReceiptController] Error fetching receipts for userId=" + userId + ": " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "success", false,
                 "message", "Error fetching receipts: " + e.getMessage()

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
+import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 import { endpoints } from '../api/endpoints';
 
 const Appointments = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
@@ -65,7 +63,7 @@ const Appointments = () => {
 
       console.log('Creating payment for appointment:', paymentRequest);
       
-      const response = await api.post('/payments/create', paymentRequest);
+      const response = await api.post(endpoints.createPayment, paymentRequest);
       
       console.log('Payment creation response:', response.data);
       

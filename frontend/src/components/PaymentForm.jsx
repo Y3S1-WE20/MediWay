@@ -10,7 +10,7 @@ import { Input } from './ui/input';
  * Payment component for processing PayPal payments
  * Supports appointment payments and general payments
  */
-function PaymentForm({ appointmentId, amount: initialAmount, description: initialDescription, onSuccess, onCancel }) {
+function PaymentForm({ appointmentId, amount: initialAmount, description: initialDescription, onCancel }) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     amount: initialAmount || '',

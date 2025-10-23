@@ -1,15 +1,17 @@
 package com.mediway.backend.config;
 
-import com.paypal.base.rest.APIContext;
-import com.paypal.base.rest.OAuthTokenCredential;
-import com.paypal.base.rest.PayPalRESTException;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.paypal.base.rest.APIContext;
+import com.paypal.base.rest.OAuthTokenCredential;
+import com.paypal.base.rest.PayPalRESTException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * PayPal Configuration for Sandbox Integration
@@ -33,15 +35,28 @@ public class PayPalConfig {
      * This is used for all PayPal API interactions
      */
     @Bean
-    public APIContext apiContext() throws PayPalRESTException {
-        Map<String, String> configMap = new HashMap<>();
-        configMap.put("mode", mode);
-        
-        APIContext context = new APIContext(clientId, clientSecret, mode);
-        context.setConfigurationMap(configMap);
-        
-        log.info("PayPal API Context initialized in {} mode", mode);
-        return context;
+    public APIContext apiContext() {
+        try {
+            // Only create API context if we have valid credentials
+            if (clientId == null || clientId.trim().isEmpty() ||
+                clientSecret == null || clientSecret.trim().isEmpty()) {
+                log.warn("PayPal credentials not configured, PayPal integration will use simulated mode");
+                return null;
+            }
+
+            Map<String, String> configMap = new HashMap<>();
+            configMap.put("mode", mode);
+
+            APIContext context = new APIContext(clientId, clientSecret, mode);
+            context.setConfigurationMap(configMap);
+
+            log.info("PayPal API Context initialized in {} mode", mode);
+            return context;
+        } catch (Exception e) {
+            log.error("Failed to initialize PayPal API Context: {}", e.getMessage());
+            log.warn("PayPal integration will use simulated mode due to configuration error");
+            return null;
+        }
     }
 
     /**

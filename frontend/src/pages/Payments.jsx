@@ -4,9 +4,8 @@ import { DollarSign, CheckCircle, Receipt } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Select } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import api from '../api/api';
 import { endpoints } from '../api/endpoints';
 

@@ -31,6 +31,9 @@ public class Payment {
     @Column(name = "transaction_id", length = 100)
     private String transactionId;
 
+    @Column(name = "paypal_payment_id", length = 100)
+    private String paypalPaymentId;
+
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
@@ -70,6 +73,9 @@ public class Payment {
 
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public String getPaypalPaymentId() { return paypalPaymentId; }
+    public void setPaypalPaymentId(String paypalPaymentId) { this.paypalPaymentId = paypalPaymentId; }
 
     public LocalDateTime getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDateTime paymentDate) { this.paymentDate = paymentDate; }

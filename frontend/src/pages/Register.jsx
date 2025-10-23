@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, Mail, Phone, Calendar, User, Lock, QrCode } from 'lucide-react';
+import { UserPlus, Mail, Phone, Lock, QrCode } from 'lucide-react';
 import { Input } from '../components/ui/input';
-import { Select } from '../components/ui/select';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import api from '../api/api';
@@ -69,7 +68,7 @@ const Register = () => {
 
     try {
       // Call backend API
-      const response = await api.post(endpoints.register, {
+      const response = await api.post('/patients/register', {
         fullName: formData.name,
         email: formData.email,
         phone: formData.phone,

@@ -1,7 +1,15 @@
 package com.mediway.backend.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "doctors")
@@ -25,6 +33,15 @@ public class Doctor {
     @Column(nullable = false)
     private Boolean available = true;
 
+    @Lob
+    private byte[] photo;
+
+    @Column(length = 100)
+    private String photoContentType;
+
+    @Column(nullable = false, length = 100)
+    private String password;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -35,12 +52,13 @@ public class Doctor {
     }
 
     // Constructor with parameters
-    public Doctor(String name, String specialization, String email, String phone) {
+    public Doctor(String name, String specialization, String email, String phone, String password) {
         this();
         this.name = name;
         this.specialization = specialization;
         this.email = email;
         this.phone = phone;
+        this.password = password;
     }
 
     // Getters and setters
@@ -61,6 +79,15 @@ public class Doctor {
 
     public Boolean getAvailable() { return available; }
     public void setAvailable(Boolean available) { this.available = available; }
+
+    public byte[] getPhoto() { return photo; }
+    public void setPhoto(byte[] photo) { this.photo = photo; }
+
+    public String getPhotoContentType() { return photoContentType; }
+    public void setPhotoContentType(String photoContentType) { this.photoContentType = photoContentType; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
