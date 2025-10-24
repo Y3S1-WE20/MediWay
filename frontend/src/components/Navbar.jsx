@@ -35,6 +35,7 @@ const Navbar = () => {
   const privateLinks = [
     { name: 'Home', path: '/' },
     { name: 'Appointments', path: '/appointments' },
+    { name: 'Medical Records', path: '/medical-records' },
     { name: 'Payments', path: '/payments' },
     { name: 'Reports', path: '/reports' },
     { name: 'Profile', path: '/profile' },

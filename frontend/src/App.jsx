@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+import MedicalRecords from './pages/MedicalRecords';
 
 import './App.css';
 
@@ -103,6 +104,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/medical-records"
+              element={
+                <ProtectedRoute>
+                  <MedicalRecords />
                 </ProtectedRoute>
               }
             />
