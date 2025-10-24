@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,15 +64,39 @@ public class SimpleMedicalRecordController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MedicalRecord> updateMedicalRecord(@PathVariable Long id, @RequestBody MedicalRecord recordDetails) {
+    public ResponseEntity<?> updateMedicalRecord(@PathVariable Long id, @RequestBody MedicalRecord recordDetails) {
         return medicalRecordRepository.findById(id)
                 .map(record -> {
                     record.setDiagnosis(recordDetails.getDiagnosis());
                     record.setTreatment(recordDetails.getTreatment());
                     record.setPrescription(recordDetails.getPrescription());
                     record.setNotes(recordDetails.getNotes());
-                    return ResponseEntity.ok(medicalRecordRepository.save(record));
+                    MedicalRecord savedRecord = medicalRecordRepository.save(record);
+                    return ResponseEntity.ok(java.util.Map.of(
+                        "success", true,
+                        "message", "Medical record updated successfully",
+                        "record", savedRecord
+                    ));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(404).body(java.util.Map.of(
+                    "success", false,
+                    "message", "Medical record not found"
+                )));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMedicalRecord(@PathVariable Long id) {
+        return medicalRecordRepository.findById(id)
+                .map(record -> {
+                    medicalRecordRepository.delete(record);
+                    return ResponseEntity.ok(java.util.Map.of(
+                        "success", true,
+                        "message", "Medical record deleted successfully"
+                    ));
+                })
+                .orElse(ResponseEntity.status(404).body(java.util.Map.of(
+                    "success", false,
+                    "message", "Medical record not found"
+                )));
     }
 }

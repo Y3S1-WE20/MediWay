@@ -1,10 +1,11 @@
 package com.mediway.backend.repository;
 
-import com.mediway.backend.entity.User;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import com.mediway.backend.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -24,4 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
 
+    /**
+     * Find user by id
+     * @param id user id
+     * @return Optional of User
+     */
+    Optional<User> findById(Long id);
 }

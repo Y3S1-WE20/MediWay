@@ -1,5 +1,6 @@
 package com.mediway.backend.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mediway.backend.dto.request.LoginRequest;
@@ -40,6 +42,18 @@ public class PatientController {
     @GetMapping("/patients/{healthId}")
     public ResponseEntity<User> getPatientByHealthId(@PathVariable String healthId) {
         Optional<User> user = patientService.findByHealthId(healthId);
+        return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/api/patients/batch")
+    public ResponseEntity<List<User>> getPatientsByIds(@RequestParam("ids") List<Long> ids) {
+        List<User> patients = patientService.findByIds(ids);
+        return ResponseEntity.ok(patients);
+    }
+
+    @GetMapping("/api/patients/{id}")
+    public ResponseEntity<User> getPatientById(@PathVariable Long id) {
+        Optional<User> user = patientService.findById(id);
         return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 }

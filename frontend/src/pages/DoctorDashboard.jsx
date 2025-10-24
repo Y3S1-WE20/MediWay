@@ -16,7 +16,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Download
+  Download,
+  User
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -31,6 +32,7 @@ const DoctorDashboard = () => {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [myPatients, setMyPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [doctorProfile, setDoctorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -51,12 +53,18 @@ const DoctorDashboard = () => {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      // Always send X-User-Id header via api instance
-      // Fetch appointments for the doctor (still using fetch, as endpoint is not under /api)
+      // Fetch doctor profile
+      try {
+        const doctorResponse = await api.get(`/doctors/${user.id}`);
+        setDoctorProfile(doctorResponse.data);
+      } catch (err) {
+        console.error('Error fetching doctor profile:', err);
+      }
+
+      // Fetch appointments for the doctor
       const appointmentsResponse = await fetch(`http://localhost:8080/doctors/${user.id}/appointments`, { headers: { 'X-User-Id': user.id } });
       let appointmentsData = await appointmentsResponse.json();
       if (!Array.isArray(appointmentsData)) {
-        // If backend returns error object, show error and fallback
         console.error('Appointments API error:', appointmentsData);
         appointmentsData = [];
       }
@@ -65,10 +73,6 @@ const DoctorDashboard = () => {
       // Fetch medical records for this doctor using api instance
       let recordsData = [];
       try {
-        // Debug: log headers for this request
-        const debugHeaders = await api.getUri({ url: `/api/medical-records/doctor/${user.id}` });
-        console.log('DEBUG: Medical records request URI:', debugHeaders);
-        console.log('DEBUG: User ID for header:', user.id);
         const recordsResponse = await api.get(`/api/medical-records/doctor/${user.id}`);
         if (Array.isArray(recordsResponse.data)) {
           recordsData = recordsResponse.data;
@@ -80,18 +84,50 @@ const DoctorDashboard = () => {
       }
       setMedicalRecords(recordsData);
 
-      // Extract unique patients from appointments
-      const patientIds = new Set((appointmentsData || []).map(apt => apt.patientId));
-      // Mock patients for now
-      const mockPatients = Array.from(patientIds).map(id => ({
-        id: id,
-        name: `Patient ${id}`
-      }));
-      setMyPatients(mockPatients);
+      // Fetch real patient details for all unique patient IDs in appointments
+      const patientIds = Array.from(new Set((appointmentsData || []).map(apt => apt.patientId)));
+      let patientsMap = {};
+      if (patientIds.length > 0) {
+        try {
+          // Try batch endpoint first
+          const resp = await api.get(`/api/patients/batch?ids=${patientIds.join(',')}`);
+          if (Array.isArray(resp.data) && resp.data.length === patientIds.length) {
+            resp.data.forEach(p => { patientsMap[p.id] = p; });
+          } else {
+            // fallback: fetch each patient by ID
+            await Promise.all(patientIds.map(async id => {
+              try {
+                const res = await api.get(`/api/patients/${id}`);
+                if (res.data && res.data.id) {
+                  patientsMap[id] = res.data;
+                } else {
+                  patientsMap[id] = { id, name: `Patient ${id}` };
+                }
+              } catch {
+                patientsMap[id] = { id, name: `Patient ${id}` };
+              }
+            }));
+          }
+        } catch (err) {
+          // fallback: fetch each patient by ID
+          await Promise.all(patientIds.map(async id => {
+            try {
+              const res = await api.get(`/api/patients/${id}`);
+              if (res.data && res.data.id) {
+                patientsMap[id] = res.data;
+              } else {
+                patientsMap[id] = { id, name: `Patient ${id}` };
+              }
+            } catch {
+              patientsMap[id] = { id, name: `Patient ${id}` };
+            }
+          }));
+        }
+      }
+      setMyPatients(Object.values(patientsMap));
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      // Fallback to mock data
       setAppointments([]);
       setMedicalRecords([]);
       setMyPatients([]);
@@ -199,6 +235,10 @@ const DoctorDashboard = () => {
   const getPatientName = (patientId) => {
     const patient = myPatients.find(p => p.id === patientId);
     return patient ? patient.name : `Patient ${patientId}`;
+  };
+  const getPatientPhoto = (patientId) => {
+    const patient = myPatients.find(p => p.id === patientId);
+    return patient && patient.profilePicture ? patient.profilePicture : null;
   };
 
   const filteredRecords = medicalRecords.filter(record => {
@@ -343,6 +383,58 @@ const DoctorDashboard = () => {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Doctor Profile Section */}
+        {doctorProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-8"
+          >
+            <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-blue-500 h-32"></div>
+              <div className="px-6 pb-6 relative">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 -mt-16">
+                  <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center text-white text-4xl font-bold">
+                    {doctorProfile.name?.charAt(0) || 'D'}
+                  </div>
+                  <div className="flex-1 text-center md:text-left mt-4 md:mt-8">
+                    <h2 className="text-3xl font-bold text-gray-800">{doctorProfile.name}</h2>
+                    <p className="text-xl text-green-600 font-semibold mt-1">{doctorProfile.specialization}</p>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-green-600" />
+                        <span>{medicalRecords.length} Total Records</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-green-600" />
+                        <span>{appointments.length} Appointments</span>
+                      </div>
+                      {doctorProfile.email && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">📧</span>
+                          <span>{doctorProfile.email}</span>
+                        </div>
+                      )}
+                      {doctorProfile.phone && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">📱</span>
+                          <span>{doctorProfile.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-4 md:mt-8">
+                    <Badge className={`${doctorProfile.available ? 'bg-green-500' : 'bg-gray-500'} text-white px-4 py-2 text-sm font-semibold`}>
+                      {doctorProfile.available ? '● Available' : '● Unavailable'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -570,7 +662,7 @@ const DoctorDashboard = () => {
           </Card>
         </motion.div>
 
-        {/* Appointments Section */}
+        {/* My Appointments Section - Table View */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -581,66 +673,80 @@ const DoctorDashboard = () => {
             <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-green-50 to-blue-50">
               <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-green-600" />
-                Today's Appointments
+                My Appointments
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">View and manage your scheduled appointments</p>
             </CardHeader>
             <CardContent className="p-6">
               <AnimatePresence mode="wait">
                 {appointments.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {appointments.map((appointment, index) => (
-                      <motion.div
-                        key={appointment.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="border-2 border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-gray-50"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-green-400 flex items-center justify-center text-white font-bold text-lg">
-                              P{appointment.patientId}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg text-gray-800">Patient {appointment.patientId}</h3>
-                              <p className="text-sm text-gray-500 flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {appointment.appointmentDate ? new Date(appointment.appointmentDate).toLocaleString('en-US', {
-                                  weekday: 'short',
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                }) : 'Not scheduled'}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge 
-                            variant={appointment.status === 'COMPLETED' ? 'default' : appointment.status === 'SCHEDULED' ? 'secondary' : 'outline'}
-                            className={`${
-                              appointment.status === 'COMPLETED' 
-                                ? 'bg-green-100 text-green-700 border-green-300' 
-                                : appointment.status === 'SCHEDULED'
-                                ? 'bg-blue-100 text-blue-700 border-blue-300'
-                                : 'bg-gray-100 text-gray-700'
-                            } font-semibold px-3 py-1`}
-                          >
-                            {appointment.status}
-                          </Badge>
-                        </div>
-                        {appointment.notes && (
-                          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-gray-700 flex items-start gap-2">
-                              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                              <span><strong>Notes:</strong> {appointment.notes}</span>
-                            </p>
-                          </div>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="overflow-x-auto"
+                  >
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left p-4 font-semibold text-gray-700 border-b">Patient ID</th>
+                          <th className="text-left p-4 font-semibold text-gray-700 border-b">Patient Name</th>
+                          <th className="text-left p-4 font-semibold text-gray-700 border-b">Date</th>
+                          <th className="text-left p-4 font-semibold text-gray-700 border-b">Time</th>
+                          <th className="text-left p-4 font-semibold text-gray-700 border-b">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <AnimatePresence>
+                          {appointments.map((appointment, index) => {
+                            const patientName = getPatientName(appointment.patientId);
+                            const appointmentDate = appointment.appointmentDate 
+                              ? new Date(appointment.appointmentDate).toISOString().split('T')[0]
+                              : 'Not scheduled';
+                            const appointmentTime = appointment.appointmentDate
+                              ? new Date(appointment.appointmentDate).toLocaleTimeString('en-US', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit',
+                                  hour12: false 
+                                })
+                              : '--:--';
+                            
+                            return (
+                              <motion.tr
+                                key={appointment.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="border-b hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="p-4 text-gray-700">{appointment.patientId}</td>
+                                <td className="p-4 text-gray-700 font-medium">{patientName}</td>
+                                <td className="p-4 text-gray-700">{appointmentDate}</td>
+                                <td className="p-4 text-gray-700">{appointmentTime}</td>
+                                <td className="p-4">
+                                  <Badge 
+                                    className={`
+                                      ${appointment.status === 'COMPLETED' 
+                                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                                        : appointment.status === 'CONFIRMED' || appointment.status === 'SCHEDULED'
+                                        ? 'bg-green-500 hover:bg-green-600 text-white'
+                                        : appointment.status === 'CANCELLED'
+                                        ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                                        : appointment.status === 'PENDING'
+                                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                                        : 'bg-gray-400 hover:bg-gray-500 text-white'
+                                      } font-semibold px-4 py-1 rounded-full`}
+                                  >
+                                    {appointment.status}
+                                  </Badge>
+                                </td>
+                              </motion.tr>
+                            );
+                          })}
+                        </AnimatePresence>
+                      </tbody>
+                    </table>
+                  </motion.div>
                 ) : (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -652,7 +758,7 @@ const DoctorDashboard = () => {
                       <Calendar className="w-12 h-12 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">No appointments scheduled</h3>
-                    <p className="text-gray-500">Your appointment schedule is clear for today</p>
+                    <p className="text-gray-500">Your appointment schedule is clear</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -829,6 +935,165 @@ const DoctorDashboard = () => {
                   >
                     <Save className="w-4 h-4" />
                     Create Record
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Edit Medical Record Modal */}
+        <AnimatePresence>
+          {showEditModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => { setShowEditModal(false); resetForm(); }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-green-500 text-white p-6 rounded-t-2xl flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <Edit className="w-6 h-6" />
+                    <h2 className="text-2xl font-bold">Edit Medical Record</h2>
+                  </div>
+                  <button
+                    onClick={() => { setShowEditModal(false); resetForm(); }}
+                    className="hover:bg-white/20 p-2 rounded-full transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6">
+                  <form className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6">
+                      {/* Patient Selection */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <User className="w-4 h-4 inline mr-2" />
+                          Patient
+                        </label>
+                        <select
+                          value={formData.patientId}
+                          onChange={(e) => setFormData({...formData, patientId: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all"
+                        >
+                          <option value="">Select Patient</option>
+                          {myPatients.map(patient => (
+                            <option key={patient.id} value={patient.id}>
+                              {patient.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Appointment Selection */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <Calendar className="w-4 h-4 inline mr-2" />
+                          Appointment
+                        </label>
+                        <select
+                          value={formData.appointmentId}
+                          onChange={(e) => setFormData({...formData, appointmentId: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all"
+                        >
+                          <option value="">Select Appointment</option>
+                          {appointments.map(apt => (
+                            <option key={apt.id} value={apt.id}>
+                              {apt.patientName} - {apt.appointmentDate} {apt.appointmentTime}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Diagnosis */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <FileText className="w-4 h-4 inline mr-2" />
+                          Diagnosis
+                        </label>
+                        <textarea
+                          value={formData.diagnosis}
+                          onChange={(e) => setFormData({...formData, diagnosis: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all resize-none"
+                          rows="3"
+                          placeholder="Enter diagnosis..."
+                        />
+                      </div>
+
+                      {/* Treatment */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Treatment Plan
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.treatment}
+                          onChange={(e) => setFormData({...formData, treatment: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all"
+                          placeholder="Treatment plan..."
+                        />
+                      </div>
+
+                      {/* Prescription */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Prescription
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.prescription}
+                          onChange={(e) => setFormData({...formData, prescription: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all"
+                          placeholder="Prescription details..."
+                        />
+                      </div>
+
+                      {/* Notes */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Notes
+                        </label>
+                        <textarea
+                          value={formData.notes}
+                          onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg transition-all resize-none"
+                          rows="2"
+                          placeholder="Additional notes..."
+                        />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="border-t border-gray-200 p-6 bg-gray-50 flex gap-3 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => { setShowEditModal(false); resetForm(); }}
+                    className="px-6 border-2 border-gray-300 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    onClick={handleEditRecord}
+                    className="px-6 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Update Record
                   </Button>
                 </div>
               </motion.div>

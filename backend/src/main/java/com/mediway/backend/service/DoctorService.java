@@ -105,6 +105,7 @@ public class DoctorService {
             Map<String, Object> map = new HashMap<>();
             map.put("id", appointment.getId());
             map.put("patientId", appointment.getPatientId());
+            map.put("appointmentDate", appointment.getAppointmentDate()); // Full datetime for frontend
             map.put("date", appointment.getAppointmentDate().toLocalDate());
             map.put("time", appointment.getAppointmentDate().toLocalTime());
             map.put("status", appointment.getStatus().name());
