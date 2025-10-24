@@ -1,73 +1,63 @@
-import { motion } from "framer-motion";
-import { Calendar, QrCode, CreditCard, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Calendar, CreditCard, Hospital, QrCode } from "lucide-react";
 
 const features = [
   {
     icon: Calendar,
     title: "Easy Appointments",
-    description: "Book, reschedule, or cancel appointments instantly with just a few taps.",
+    description: "Book, reschedule, or cancel appointments with your preferred healthcare providers instantly — anytime, anywhere."
   },
   {
     icon: QrCode,
     title: "Smart Health Card",
-    description: "QR-based digital health card for quick access to your complete medical history.",
+    description: "Your digital health card with QR code access. No more carrying physical documents to hospitals."
   },
   {
     icon: CreditCard,
     title: "Secure Payments",
-    description: "Pay for consultations and services safely with multiple payment options.",
+    description: "Pay consultation fees and bills securely online. Support for all major payment methods in Sri Lanka."
   },
   {
-    icon: BarChart3,
+    icon: Hospital,
     title: "Hospital Insights",
-    description: "Track your health metrics and get personalized insights from your healthcare provider.",
-  },
+    description: "Browse hospitals, read reviews, compare services, and make informed healthcare decisions."
+  }
 ];
 
-const FeaturesSection = () => {
+const Features = () => {
   return (
-    <section className="py-20 px-4 bg-muted/30">
-      <div className="container mx-auto max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+    <section className="py-20 bg-background">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12 animate-fade-in">
+          <h2 className="font-poppins text-3xl md:text-4xl font-bold mb-4">
             Everything You Need for Better Healthcare
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            MediWay brings together all essential healthcare services in one simple platform
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Comprehensive digital health services designed for modern Sri Lanka
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className="group"
+              <Card 
+                key={index} 
+                className="group hover:shadow-card-hover transition-all duration-300 cursor-pointer border-none shadow-card animate-slide-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="h-full bg-card rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Icon className="w-7 h-7 text-primary" />
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-primary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                  <h3 className="font-poppins text-xl font-semibold mb-2 text-foreground">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
-                </div>
-              </motion.div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -76,4 +66,4 @@ const FeaturesSection = () => {
   );
 };
 
-export default FeaturesSection;
+export default Features;
