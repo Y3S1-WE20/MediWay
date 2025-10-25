@@ -1,8 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Calendar, Shield, Clock } from 'lucide-react';
+import heroImage1 from "@/assets/hero-doctor-patient.jpg";
+import heroImage2 from "@/assets/hero-technology.jpg";
+import heroImage3 from "@/assets/hero-family.jpg";
+import floatingHealthCard from "@/assets/floating-healthcard.png";
+import floatingMedical from "@/assets/floating-medical.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -82,6 +87,23 @@ const HeroSection = () => {
     return () => ctx.revert();
   }, []);
 
+  // Carousel images and automatic rotation
+  const heroImages = [
+    { src: heroImage1, alt: 'Doctor and patient in modern healthcare setting' },
+    { src: heroImage2, alt: 'Medical professionals using digital healthcare technology' },
+    { src: heroImage3, alt: 'Family with doctor reviewing health information' }
+  ];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const features = [
     {
       icon: <Heart className="w-6 h-6" />,
@@ -112,26 +134,51 @@ const HeroSection = () => {
       style={{ width: '100vw', marginLeft: 'calc(50% - 50vw)' }}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 pt-20"
     >
-      {/* Animated Background */}
+      {/* Animated Background (carousel) */}
       <motion.div
         className="absolute inset-0 z-0"
         style={{ y, opacity }}
       >
-        {/* Background image (loads from src/assets/img/hero-bg.png). If missing, fallback to Unsplash. */}
-        <img
-          src="/src/assets/img/hero-bg.jpg"
-          alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            // fallback remote image
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?w=1600&q=80&auto=format&fit=crop';
-          }}
-        />
+        {/* Background Image Carousel */}
+        {heroImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={image.src}
+              alt={image.alt}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?w=1600&q=80&auto=format&fit=crop';
+              }}
+            />
+          </div>
+        ))}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 mix-blend-overlay" />
-        <div className="absolute top-20 left-20 w-72 h-72 bg-green-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-pulse delay-700" />
+        {/* Blend with white overlay to improve readability (stronger on small screens) */}
+        <div className="absolute inset-0 bg-white/70 md:bg-white/50 lg:bg-white/30 pointer-events-none" />
+        {/* subtle green tint overlay for brand feel */}
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 mix-blend-overlay pointer-events-none" />
+
+        {/* Floating decorative images (hidden on small screens) */}
+        <div className="absolute right-10 top-20 hidden lg:block z-10 animate-float">
+          <img
+            src={floatingHealthCard}
+            alt="Digital health card"
+            className="w-48 h-48 object-contain drop-shadow-2xl"
+          />
+        </div>
+        <div className="absolute right-32 bottom-32 hidden lg:block z-10 animate-float-delayed">
+          <img
+            src={floatingMedical}
+            alt="Medical stethoscope"
+            className="w-40 h-40 object-contain drop-shadow-2xl"
+          />
+        </div>
       </motion.div>
 
   <div className="w-full max-w-7xl mx-auto px-4 py-20 relative z-10">
