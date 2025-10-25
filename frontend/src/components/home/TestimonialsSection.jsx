@@ -54,7 +54,7 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section ref={ref} className="py-20 bg-gradient-to-br from-green-50 via-white to-emerald-50 overflow-hidden">
+  <section ref={ref} className="relative py-20 bg-gradient-to-br from-green-50 via-white to-emerald-50 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
