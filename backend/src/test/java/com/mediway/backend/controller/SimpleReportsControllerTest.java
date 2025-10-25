@@ -1,5 +1,17 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimpleReportsControllerTest):
+ * - Get dashboard stats - Success                     : Positive
+ * - Appointments by department                        : Positive
+ * - Monthly revenue                                   : Positive
+ * - Daily appointments trend                          : Positive
+ * - Top paying patients                               : Positive
+ * - Revenue by doctor                                 : Positive
+ * - Pending payments over time                        : Edge/Positive
+ * Note: Many additional scenarios present; file focuses on analytics/reporting correctness and edge cases around empty datasets.
+ */
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;

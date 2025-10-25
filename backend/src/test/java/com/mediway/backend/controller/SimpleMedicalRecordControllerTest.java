@@ -1,5 +1,15 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimpleMedicalRecordControllerTest):
+ * - Get all medical records - Success                 : Positive
+ * - Get medical record by ID - Success / Not Found   : Positive / Negative
+ * - Create medical record - Success                  : Positive
+ * - Update medical record - Success / Not Found      : Positive / Negative
+ * - Delete medical record - Success / Not Found      : Positive / Negative
+ * - Get medical records by patient/doctor ID         : Positive
+ */
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,6 +75,7 @@ class SimpleMedicalRecordControllerTest {
         testMedicalRecord.setPrescription("Test prescription");
     }
 
+    // Positive: Get all medical records - Success
     @Test
     @DisplayName("Get all medical records - Success")
     void getAllMedicalRecords_Success() throws Exception {
@@ -82,6 +93,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).findAll();
     }
 
+    // Positive: Get medical record by ID - Success
     @Test
     @DisplayName("Get medical record by ID - Success")
     void getMedicalRecordById_Success() throws Exception {
@@ -98,6 +110,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).findById(1L);
     }
 
+    // Negative: Get medical record by ID - Not Found
     @Test
     @DisplayName("Get medical record by ID - Not Found")
     void getMedicalRecordById_NotFound() throws Exception {
@@ -111,6 +124,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).findById(1L);
     }
 
+    // Positive: Create medical record - Success
     @Test
     @DisplayName("Create medical record - Success")
     void createMedicalRecord_Success() throws Exception {
@@ -138,6 +152,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).save(any(MedicalRecord.class));
     }
 
+    // Positive: Update medical record - Success
     @Test
     @DisplayName("Update medical record - Success")
     void updateMedicalRecord_Success() throws Exception {
@@ -164,6 +179,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).save(any(MedicalRecord.class));
     }
 
+    // Negative: Update medical record - Not Found
     @Test
     @DisplayName("Update medical record - Not Found")
     void updateMedicalRecord_NotFound() throws Exception {
@@ -187,6 +203,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository, never()).save(any());
     }
 
+    // Positive: Delete medical record - Success
     @Test
     @DisplayName("Delete medical record - Success")
     void deleteMedicalRecord_Success() throws Exception {
@@ -201,6 +218,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).deleteById(1L);
     }
 
+    // Negative: Delete medical record - Not Found
     @Test
     @DisplayName("Delete medical record - Not Found")
     void deleteMedicalRecord_NotFound() throws Exception {
@@ -215,6 +233,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository, never()).deleteById(any());
     }
 
+    // Positive: Get medical records by patient ID
     @Test
     @DisplayName("Get medical records by patient ID - Success")
     void getMedicalRecordsByPatientId_Success() throws Exception {
@@ -237,6 +256,7 @@ class SimpleMedicalRecordControllerTest {
         verify(medicalRecordRepository).findByPatientIdOrderByRecordDateDesc(1L);
     }
 
+    // Positive: Get medical records by doctor ID
     @Test
     @DisplayName("Get medical records by doctor ID - Success")
     void getMedicalRecordsByDoctorId_Success() throws Exception {

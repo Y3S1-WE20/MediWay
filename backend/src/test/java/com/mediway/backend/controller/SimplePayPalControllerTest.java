@@ -1,5 +1,16 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimplePayPalControllerTest):
+ * This file contains comprehensive Positive / Negative / Edge tests for PayPal-related flows.
+ * Many tests are annotated inline at the start of each test method explaining the test type.
+ * Examples:
+ * - createPayment_ValidRequest_ReturnsSuccess        : Positive
+ * - createPayment_AppointmentNotFound_ReturnsBadRequest : Negative
+ * - executePayment_FindByPayPalId_Success            : Positive
+ * - executePayment_NoAppointmentId_ReturnsError      : Negative/Edge
+ */
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -49,6 +60,7 @@ class SimplePayPalControllerTest {
 
     @Test
     void createPayment_ValidRequest_ReturnsSuccess() throws Exception {
+        // Positive: Creates a payment when appointment exists and no prior completed payments; expects success and returned paymentId
         // Given
         Appointment appointment = new Appointment();
         appointment.setId(1L);
@@ -72,7 +84,7 @@ class SimplePayPalControllerTest {
 
     @Test
     void createPayment_AppointmentNotFound_ReturnsBadRequest() throws Exception {
-        // Given
+        // Negative: Appointment not found when creating payment; expects internal server error (simulated failure handling)
     when(appointmentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // When & Then
@@ -85,7 +97,7 @@ class SimplePayPalControllerTest {
 
     @Test
     void executePayment_ValidPayment_ReturnsSuccess() throws Exception {
-        // Given
+        // Positive: Executes a valid pending payment for an existing appointment; expects success
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setAppointmentId(1L);
@@ -107,7 +119,7 @@ class SimplePayPalControllerTest {
 
     @Test
     void executePayment_PaymentNotFound_ReturnsInternalServerError() throws Exception {
-        // Given
+        // Negative: Payment ID not found when attempting to execute; expects internal server error
     when(paymentRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // When & Then
@@ -122,6 +134,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment with null userId header - defaults to 1L")
     void createPayment_NullUserId_DefaultsTo1() throws Exception {
+        // Edge: Missing X-User-Id header should default to userId=1L and still allow payment creation
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         
@@ -142,6 +155,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment with appointmentId as Integer type")
     void createPayment_AppointmentIdAsInteger_ParsesCorrectly() throws Exception {
+        // Edge: JSON appointmentId as integer should parse correctly and create payment
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         
@@ -163,6 +177,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment with amount as Integer type")
     void createPayment_AmountAsInteger_ParsesCorrectly() throws Exception {
+        // Edge: JSON amount provided as integer (no decimal) should parse and succeed
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         
@@ -184,6 +199,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - payment already completed for appointment")
     void createPayment_AlreadyCompletedForAppointment_ReturnsBadRequest() throws Exception {
+        // Negative: Existing completed payment for same appointment should block new payment and return bad request
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -207,6 +223,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - existing payment but not completed (PENDING status)")
     void createPayment_ExistingPaymentNotCompleted_AllowsNewPayment() throws Exception {
+        // Positive: Existing payment is PENDING (not completed), so creating a new payment is allowed
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -233,6 +250,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - existing payment for different appointment")
     void createPayment_ExistingPaymentDifferentAppointment_AllowsNewPayment() throws Exception {
+        // Positive: Existing payment references a different appointment, so new payment creation is allowed
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -259,6 +277,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - existing payment with null appointmentId")
     void createPayment_ExistingPaymentNullAppointmentId_AllowsNewPayment() throws Exception {
+        // Edge: Existing payment has null appointmentId; should not block creating a new payment for this appointment
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -285,6 +304,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - payment already completed status")
     void executePayment_AlreadyCompleted_ReturnsBadRequest() throws Exception {
+        // Negative: Attempt to execute a payment that's already COMPLETED should return bad request
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.COMPLETED);
@@ -302,6 +322,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - find by PayPal payment ID (not numeric)")
     void executePayment_FindByPayPalId_Success() throws Exception {
+        // Positive: Find payment by PayPal string ID and execute it, expect success
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("PAY-XXXYYY");
@@ -326,6 +347,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - appointment status not SCHEDULED (skip update)")
     void executePayment_AppointmentNotScheduled_SkipsStatusUpdate() throws Exception {
+        // Edge: Appointment is not SCHEDULED (e.g., COMPLETED) so the appointment status update should be skipped
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);
@@ -351,6 +373,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - payment has no appointmentId")
     void executePayment_NoAppointmentId_ReturnsError() throws Exception {
+        // Negative/Edge: Payment has null appointmentId which triggers error path (handled as internal server error)
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);
@@ -370,6 +393,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - valid token")
     void executePaymentByToken_ValidToken_Success() throws Exception {
+        // Positive: Execute payment found by token; expect successful execution and appointment status update
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("SIM-123");
@@ -394,6 +418,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - EC- prefix stripped")
     void executePaymentByToken_ECPrefix_StripsPrefix() throws Exception {
+        // Edge: Token prefixed with "EC-" should be normalized (strip prefix) and match payment
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("12345");
@@ -418,6 +443,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - payment not found")
     void executePaymentByToken_NotFound_ReturnsError() throws Exception {
+        // Negative: No payment matches provided token; expect internal server error response
         when(paymentRepository.findAll()).thenReturn(Collections.emptyList());
 
         mockMvc.perform(post("/paypal/execute-token")
@@ -430,6 +456,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - already completed")
     void executePaymentByToken_AlreadyCompleted_ReturnsBadRequest() throws Exception {
+        // Negative: Found payment is already COMPLETED; execution should return bad request
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("SIM-123");
@@ -448,6 +475,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - appointment status not SCHEDULED")
     void executePaymentByToken_AppointmentNotScheduled_SkipsUpdate() throws Exception {
+        // Edge: Appointment found but status is not SCHEDULED (e.g., CANCELLED); appointment save should be skipped
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("SIM-123");
@@ -474,6 +502,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - no appointmentId")
     void executePaymentByToken_NoAppointmentId_ReturnsError() throws Exception {
+        // Negative/Edge: Payment has null appointmentId when executing by token; triggers internal server error path
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("SIM-123");
@@ -494,6 +523,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Cancel payment - valid payment")
     void cancelPayment_ValidPayment_ReturnsSuccess() throws Exception {
+        // Positive: Cancel a pending payment; expect status change to FAILED and success message
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);
@@ -512,6 +542,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Cancel payment - payment not found")
     void cancelPayment_NotFound_ReturnsError() throws Exception {
+        // Negative: Cancel attempted for non-existent payment; expect internal server error response
         when(paymentRepository.findById(1L)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/paypal/cancel")
@@ -524,6 +555,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my payments - with userId header")
     void getMyPayments_WithUserId_ReturnsPayments() throws Exception {
+        // Positive: Retrieve payments for provided X-User-Id header; expect OK and list returned
         Payment payment1 = new Payment();
         payment1.setId(1L);
         Payment payment2 = new Payment();
@@ -539,6 +571,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my payments - null userId defaults to 1L")
     void getMyPayments_NullUserId_DefaultsTo1() throws Exception {
+        // Edge: No X-User-Id header should default to userId=1L and return payments
         Payment payment = new Payment();
         payment.setId(1L);
 
@@ -551,6 +584,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my payments - exception thrown")
     void getMyPayments_ExceptionThrown_ReturnsError() throws Exception {
+        // Negative: Repository throws exception; controller should return internal server error with success=false
         when(paymentRepository.findByUserId(anyLong())).thenThrow(new RuntimeException("Database error"));
 
         mockMvc.perform(get("/paypal/my-payments")
@@ -562,6 +596,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my receipts - returns only completed payments")
     void getMyReceipts_ReturnsOnlyCompleted() throws Exception {
+        // Positive: Filters receipts to only COMPLETED payments; pending/failed should be omitted
         Payment completed1 = new Payment();
         completed1.setId(1L);
         completed1.setStatus(Payment.Status.COMPLETED);
@@ -584,6 +619,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my receipts - null userId defaults to 1L")
     void getMyReceipts_NullUserId_DefaultsTo1() throws Exception {
+        // Edge: No user header defaults to 1L and returns completed receipts
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.COMPLETED);
@@ -597,6 +633,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my receipts - exception thrown")
     void getMyReceipts_ExceptionThrown_ReturnsError() throws Exception {
+        // Negative: Repository throws exception while fetching receipts; expect internal server error response
         when(paymentRepository.findByUserId(anyLong())).thenThrow(new RuntimeException("Database error"));
 
         mockMvc.perform(get("/paypal/receipts/my-receipts")
@@ -608,6 +645,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - handles PayPalRESTException gracefully")
     void createPayment_PayPalException_FallsBackToSimulated() throws Exception {
+        // Positive/Edge: Simulated PayPal failure should fall back to internal simulated approval URL and still create a payment
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -630,6 +668,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Create payment - with string appointmentId")
     void createPayment_StringAppointmentId_ParsesCorrectly() throws Exception {
+        // Edge: appointmentId and amount provided as strings in JSON should be parsed and succeed
         Appointment appointment = new Appointment();
         appointment.setId(1L);
 
@@ -651,6 +690,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - find by PayPal ID with multiple payments")
     void executePayment_FindByPayPalId_WithMultiplePayments() throws Exception {
+        // Positive: When multiple payments exist, find the correct one by PayPal ID (pending) and execute it successfully
         Payment payment1 = new Payment();
         payment1.setId(1L);
         payment1.setPaypalPaymentId("PAY-111");
@@ -680,6 +720,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment by token - appointment not found (ifPresent not executed)")
     void executePaymentByToken_AppointmentNotFound_NoUpdate() throws Exception {
+        // Edge: Payment found by token references a non-existent appointment; appointment update should be skipped safely
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setPaypalPaymentId("SIM-123");
@@ -702,6 +743,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Get my receipts - filters out PENDING and FAILED statuses")
     void getMyReceipts_FiltersNonCompleted() throws Exception {
+        // Positive: Ensure receipts endpoint filters out PENDING and FAILED, returning only COMPLETED payments
         Payment completed = new Payment();
         completed.setId(1L);
         completed.setStatus(Payment.Status.COMPLETED);
@@ -724,6 +766,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Cancel payment - payment becomes FAILED status")
     void cancelPayment_SetsStatusToFailed() throws Exception {
+        // Positive: Cancelling a PENDING payment should set its status to FAILED before saving
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);
@@ -746,6 +789,7 @@ class SimplePayPalControllerTest {
     @Test
     @DisplayName("Execute payment - appointment ifPresent with empty Optional")
     void executePayment_AppointmentNotFound_IfPresentNotExecuted() throws Exception {
+        // Edge: When executing payment that references a non-existent appointment, the appointment .ifPresent path should not execute (no save)
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);

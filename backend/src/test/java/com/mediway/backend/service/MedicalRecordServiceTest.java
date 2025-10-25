@@ -1,21 +1,37 @@
 package com.mediway.backend.service;
 
-import com.mediway.backend.entity.MedicalRecord;
-import com.mediway.backend.repository.MedicalRecordRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+/*
+ * TESTS SUMMARY (MedicalRecordServiceTest):
+ * - Create medical record (various field combos)           : Positive / Edge
+ * - Get by ID / not found                                  : Positive / Negative
+ * - Update specific fields (diagnosis/treatment/etc.)      : Positive
+ * - Delete and get all records                              : Positive
+ * - Edge: empty lists and automatic record date handling    : Edge
+ */
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+
+import com.mediway.backend.entity.MedicalRecord;
+import com.mediway.backend.repository.MedicalRecordRepository;
 
 /**
  * Unit tests for Medical Records Management
@@ -46,6 +62,7 @@ class MedicalRecordServiceTest {
         testRecord.setRecordDate(LocalDateTime.now());
     }
 
+    // Positive: Successfully create a medical record
     @Test
     @DisplayName("Test 1: Successfully create a medical record")
     void testCreateMedicalRecord_Success() {
@@ -64,6 +81,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Create medical record with diagnosis only
     @Test
     @DisplayName("Test 2: Create medical record with diagnosis only")
     void testCreateMedicalRecord_DiagnosisOnly() {
@@ -85,6 +103,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Get medical record by ID successfully
     @Test
     @DisplayName("Test 3: Get medical record by ID")
     void testGetMedicalRecordById_Success() {
@@ -101,6 +120,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).findById(1L);
     }
 
+    // Negative: Get medical record by ID - not found
     @Test
     @DisplayName("Test 4: Get medical record by ID - not found")
     void testGetMedicalRecordById_NotFound() {
@@ -115,6 +135,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).findById(99L);
     }
 
+    // Positive: Get all medical records for a patient
     @Test
     @DisplayName("Test 5: Get all medical records for a patient")
     void testGetPatientMedicalRecords() {
@@ -141,6 +162,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).findByPatientIdOrderByRecordDateDesc(1L);
     }
 
+    // Positive: Update medical record diagnosis
     @Test
     @DisplayName("Test 6: Update medical record diagnosis")
     void testUpdateMedicalRecord_Diagnosis() {
@@ -159,6 +181,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Update medical record treatment
     @Test
     @DisplayName("Test 7: Update medical record treatment")
     void testUpdateMedicalRecord_Treatment() {
@@ -176,6 +199,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Update medical record prescription
     @Test
     @DisplayName("Test 8: Update medical record prescription")
     void testUpdateMedicalRecord_Prescription() {
@@ -193,6 +217,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Update medical record notes
     @Test
     @DisplayName("Test 9: Update medical record notes")
     void testUpdateMedicalRecord_Notes() {
@@ -210,6 +235,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Delete medical record
     @Test
     @DisplayName("Test 10: Delete medical record")
     void testDeleteMedicalRecord() {
@@ -224,6 +250,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).deleteById(1L);
     }
 
+    // Positive: Get all medical records
     @Test
     @DisplayName("Test 11: Get all medical records")
     void testGetAllMedicalRecords() {
@@ -246,6 +273,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).findAll();
     }
 
+    // Positive: Create medical record with all fields
     @Test
     @DisplayName("Test 12: Create medical record with all fields")
     void testCreateMedicalRecord_AllFields() {
@@ -275,6 +303,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Edge: Verify record date is automatically set
     @Test
     @DisplayName("Test 13: Verify record date is automatically set")
     void testMedicalRecord_AutomaticRecordDate() {
@@ -286,6 +315,7 @@ class MedicalRecordServiceTest {
         assertTrue(newRecord.getRecordDate().isBefore(LocalDateTime.now().plusSeconds(1)));
     }
 
+    // Edge: Empty medical records for patient
     @Test
     @DisplayName("Test 14: Edge case - Empty medical records for patient")
     void testGetPatientMedicalRecords_Empty() {
@@ -302,6 +332,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).findByPatientIdOrderByRecordDateDesc(99L);
     }
 
+    // Positive: Update multiple fields at once
     @Test
     @DisplayName("Test 15: Update multiple fields at once")
     void testUpdateMedicalRecord_MultipleFields() {
@@ -325,6 +356,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Edge: Verify patient ID is set correctly
     @Test
     @DisplayName("Test 16: Verify patient ID is set correctly")
     void testMedicalRecord_PatientIdValidation() {
@@ -333,6 +365,7 @@ class MedicalRecordServiceTest {
         assertNotNull(testRecord.getPatientId());
     }
 
+    // Edge: Verify doctor ID is set correctly
     @Test
     @DisplayName("Test 17: Verify doctor ID is set correctly")
     void testMedicalRecord_DoctorIdValidation() {
@@ -341,6 +374,7 @@ class MedicalRecordServiceTest {
         assertNotNull(testRecord.getDoctorId());
     }
 
+    // Positive: Create medical record with long diagnosis text
     @Test
     @DisplayName("Test 18: Create medical record with long diagnosis text")
     void testCreateMedicalRecord_LongDiagnosis() {
@@ -360,6 +394,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Create medical record with long prescription
     @Test
     @DisplayName("Test 19: Create medical record with long prescription")
     void testCreateMedicalRecord_LongPrescription() {
@@ -381,6 +416,7 @@ class MedicalRecordServiceTest {
         verify(medicalRecordRepository, times(1)).save(any(MedicalRecord.class));
     }
 
+    // Positive: Verify medical records ordered by date descending
     @Test
     @DisplayName("Test 20: Verify medical records ordered by date descending")
     void testGetPatientMedicalRecords_OrderedByDate() {

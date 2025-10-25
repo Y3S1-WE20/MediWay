@@ -1,5 +1,15 @@
 package com.mediway.backend.entity;
 
+/*
+ * TESTS SUMMARY (PaymentEntityTest):
+ * - Default constructor and defaults                    : Positive
+ * - Parameterized constructor                           : Positive
+ * - Getters/Setters and nullable handling               : Positive / Edge
+ * - Status enum coverage (PENDING/COMPLETED/FAILED)    : Edge
+ * - Decimal/zero/large amount handling                  : Edge
+ * - Payment ID / transaction ID formatting tests       : Edge
+ */
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -20,6 +30,7 @@ class PaymentEntityTest {
         payment = new Payment();
     }
 
+    // Positive: Create Payment with default constructor and default values
     @Test
     @DisplayName("Should create Payment with default constructor and default values")
     void testDefaultConstructor() {
@@ -30,6 +41,7 @@ class PaymentEntityTest {
         assertNotNull(newPayment.getPaymentDate());
     }
 
+    // Positive: Create Payment with parameterized constructor
     @Test
     @DisplayName("Should create Payment with parameterized constructor")
     void testParameterizedConstructor() {
@@ -43,6 +55,7 @@ class PaymentEntityTest {
         assertEquals(Payment.Status.PENDING, newPayment.getStatus());
     }
 
+    // Positive: Set and get all Payment fields correctly
     @Test
     @DisplayName("Should set and get all Payment fields correctly")
     void testGettersAndSetters() {
@@ -70,6 +83,7 @@ class PaymentEntityTest {
         assertEquals(paymentDate, payment.getPaymentDate());
     }
 
+    // Edge: Handle null values for optional fields
     @Test
     @DisplayName("Should handle null values for optional fields")
     void testNullableFields() {
@@ -82,6 +96,7 @@ class PaymentEntityTest {
         assertNull(payment.getPaypalPaymentId());
     }
 
+    // Edge: Handle all status values
     @Test
     @DisplayName("Should handle all status values")
     void testAllStatusValues() {
@@ -95,6 +110,7 @@ class PaymentEntityTest {
         assertEquals(Payment.Status.FAILED, payment.getStatus());
     }
 
+    // Edge: Handle different payment methods
     @Test
     @DisplayName("Should handle different payment methods")
     void testDifferentPaymentMethods() {
@@ -106,6 +122,7 @@ class PaymentEntityTest {
         }
     }
 
+    // Edge: Handle PrePersist onCreate callback
     @Test
     @DisplayName("Should handle PrePersist onCreate callback")
     void testOnCreate() {
@@ -118,6 +135,7 @@ class PaymentEntityTest {
         assertEquals(Payment.Status.PENDING, newPayment.getStatus());
     }
 
+    // Edge: Not override existing values in onCreate
     @Test
     @DisplayName("Should not override existing values in onCreate")
     void testOnCreateWithExistingValues() {
@@ -130,6 +148,7 @@ class PaymentEntityTest {
         assertEquals(Payment.Status.COMPLETED, payment.getStatus());
     }
 
+    // Edge: Handle decimal amounts correctly
     @Test
     @DisplayName("Should handle decimal amounts correctly")
     void testDecimalAmounts() {
@@ -143,6 +162,7 @@ class PaymentEntityTest {
         assertEquals(new BigDecimal("123.456"), payment.getAmount());
     }
 
+    // Edge: Handle zero amount
     @Test
     @DisplayName("Should handle zero amount")
     void testZeroAmount() {
@@ -150,6 +170,7 @@ class PaymentEntityTest {
         assertEquals(BigDecimal.ZERO, payment.getAmount());
     }
 
+    // Edge: Handle large amounts
     @Test
     @DisplayName("Should handle large amounts")
     void testLargeAmounts() {
@@ -158,6 +179,7 @@ class PaymentEntityTest {
         assertEquals(largeAmount, payment.getAmount());
     }
 
+    // Edge: Handle PayPal payment ID format
     @Test
     @DisplayName("Should handle PayPal payment ID format")
     void testPayPalPaymentIdFormat() {
@@ -165,6 +187,7 @@ class PaymentEntityTest {
         assertEquals("PAYID-M123456-789012345", payment.getPaypalPaymentId());
     }
 
+    // Edge: Handle transaction ID format
     @Test
     @DisplayName("Should handle transaction ID format")
     void testTransactionIdFormat() {

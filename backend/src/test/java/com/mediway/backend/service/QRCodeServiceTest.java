@@ -1,15 +1,27 @@
 package com.mediway.backend.service;
 
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(MockitoExtension.class)
 class QRCodeServiceTest {
+
+    /*
+     * TESTS SUMMARY (QRCodeServiceTest):
+     * - generateQRCodeData: valid input produces expected formatted string : Positive
+     * - validateQRCodeData: handles valid and multiple invalid cases       : Positive/Negative
+     * - extractUserIdFromQRCode: returns UUID or throws for invalid data    : Positive/Negative
+     * - generateQRCodeImage: returns Base64 string for given data         : Positive
+     */
 
     private final QRCodeService qrCodeService = new QRCodeService();
 

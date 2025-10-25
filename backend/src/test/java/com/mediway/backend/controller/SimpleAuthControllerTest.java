@@ -1,5 +1,18 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimpleAuthControllerTest):
+ * - register_ValidUser_ReturnsSuccess                 : Positive
+ * - register_ExistingEmail_ReturnsBadRequest         : Negative
+ * - login_ValidCredentials_ReturnsSuccess            : Positive
+ * - login_InvalidCredentials_ReturnsUnauthorized     : Negative
+ * - register variations (fullName/empty name)        : Edge / Positive
+ * - register exception handling                      : Negative
+ * - login wrong password / exception handling        : Negative
+ * - doctor/admin login variations (success/invalid)  : Mix (Positive/Negative)
+ * - health endpoint                                  : Positive (health check)
+ */
+
 import java.util.Collections;
 import java.util.Optional;
 

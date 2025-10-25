@@ -34,6 +34,14 @@ import com.mediway.backend.repository.UserRepository;
 @DisplayName("Reports Service Tests - Statistical Reports & Analytics")
 class ReportsServiceTest {
 
+    /*
+     * TESTS SUMMARY (ReportsServiceTest):
+     * - Total patient/doctor/appointments counts             : Positive
+     * - Appointments by status (SCHEDULED/COMPLETED/CANCELLED) : Positive
+     * - Payments by status (COMPLETED/PENDING)               : Positive
+     * - Edge cases: empty datasets and aggregation correctness: Edge
+     */
+
     @Mock
     private AppointmentRepository appointmentRepository;
 

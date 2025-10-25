@@ -1,5 +1,16 @@
 package com.mediway.backend.exception;
 
+/*
+ * TESTS SUMMARY (GlobalExceptionHandlerTest):
+ * - Handle MethodArgumentNotValidException               : Negative (validation error)
+ * - Handle ResourceNotFoundException                    : Negative
+ * - Handle BadCredentialsException                      : Negative
+ * - Handle UsernameNotFoundException                    : Negative
+ * - Handle IllegalArgumentException                     : Negative
+ * - Handle generic Exception (global)                   : Negative
+ * - Error response contents (path, timestamp)           : Edge (metadata checks)
+ */
+
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

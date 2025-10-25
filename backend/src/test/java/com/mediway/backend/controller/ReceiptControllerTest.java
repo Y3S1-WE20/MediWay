@@ -1,5 +1,20 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (ReceiptControllerTest):
+ * - generate receipt for completed payment            : Positive
+ * - return existing receipt if already generated      : Edge (idempotent)
+ * - return 400 when payment not found                 : Negative
+ * - return 403 when payment does not belong to user   : Negative (forbidden)
+ * - return 400 when payment not completed             : Negative
+ * - get receipt by payment ID - Success               : Positive
+ * - get receipt by payment ID - Not Found             : Negative
+ * - get all receipts for user - Success               : Positive
+ * - default userId when null                          : Edge
+ * - error handling for generate/get/getMyReceipts     : Negative (exception paths)
+ * - additional tests: download PDF, get by number etc : Mix (Positive/Negative/Edge)
+ */
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;

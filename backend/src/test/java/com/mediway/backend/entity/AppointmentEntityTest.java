@@ -1,5 +1,15 @@
 package com.mediway.backend.entity;
 
+/*
+ * TESTS SUMMARY (AppointmentEntityTest):
+ * - Default constructor behavior                       : Positive
+ * - Parameterized constructor                          : Positive
+ * - Getters and setters                                : Positive
+ * - Null notes handling                                : Edge
+ * - All status values                                 : Edge (enum coverage)
+ * - PrePersist onCreate callback                      : Edge
+ */
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +29,7 @@ class AppointmentEntityTest {
         appointment = new Appointment();
     }
 
+    // Positive: Create Appointment with default constructor and default values
     @Test
     @DisplayName("Should create Appointment with default constructor and default values")
     void testDefaultConstructor() {
@@ -29,6 +40,7 @@ class AppointmentEntityTest {
         assertNotNull(newAppointment.getCreatedAt());
     }
 
+    // Positive: Create Appointment with parameterized constructor
     @Test
     @DisplayName("Should create Appointment with parameterized constructor")
     void testParameterizedConstructor() {
@@ -42,6 +54,7 @@ class AppointmentEntityTest {
         assertEquals(Appointment.Status.SCHEDULED, newAppointment.getStatus());
     }
 
+    // Positive: Set and get all Appointment fields correctly
     @Test
     @DisplayName("Should set and get all Appointment fields correctly")
     void testGettersAndSetters() {
@@ -65,6 +78,7 @@ class AppointmentEntityTest {
         assertEquals(createdAt, appointment.getCreatedAt());
     }
 
+    // Edge: Handle null notes
     @Test
     @DisplayName("Should handle null notes")
     void testNullNotes() {
@@ -72,6 +86,7 @@ class AppointmentEntityTest {
         assertNull(appointment.getNotes());
     }
 
+    // Edge: Handle all status values
     @Test
     @DisplayName("Should handle all status values")
     void testAllStatusValues() {
@@ -85,6 +100,7 @@ class AppointmentEntityTest {
         assertEquals(Appointment.Status.CANCELLED, appointment.getStatus());
     }
 
+    // Edge: Handle PrePersist onCreate callback
     @Test
     @DisplayName("Should handle PrePersist onCreate callback")
     void testOnCreate() {
@@ -97,6 +113,7 @@ class AppointmentEntityTest {
         assertEquals(Appointment.Status.SCHEDULED, newAppointment.getStatus());
     }
 
+    // Edge: Not override existing values in onCreate
     @Test
     @DisplayName("Should not override existing values in onCreate")
     void testOnCreateWithExistingValues() {
@@ -109,6 +126,7 @@ class AppointmentEntityTest {
         assertEquals(Appointment.Status.COMPLETED, appointment.getStatus());
     }
 
+    // Edge: Handle long notes text
     @Test
     @DisplayName("Should handle long notes text")
     void testLongNotes() {
@@ -117,6 +135,7 @@ class AppointmentEntityTest {
         assertEquals(longNotes, appointment.getNotes());
     }
 
+    // Edge: Handle future appointment dates
     @Test
     @DisplayName("Should handle future appointment dates")
     void testFutureAppointmentDates() {
@@ -125,6 +144,7 @@ class AppointmentEntityTest {
         assertEquals(futureDate, appointment.getAppointmentDate());
     }
 
+    // Edge: Handle past appointment dates
     @Test
     @DisplayName("Should handle past appointment dates")
     void testPastAppointmentDates() {
