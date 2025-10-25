@@ -2,12 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Calendar, Shield, Clock } from 'lucide-react';
+import { Heart, Calendar, Shield, Clock, Stethoscope, Activity, Pill, ClipboardList } from 'lucide-react';
 import heroImage1 from "@/assets/hero-doctor-patient.jpg";
 import heroImage2 from "@/assets/hero-technology.jpg";
 import heroImage3 from "@/assets/hero-family.jpg";
-import floatingHealthCard from "@/assets/floating-healthcard.png";
-import floatingMedical from "@/assets/floating-medical.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -127,6 +125,73 @@ const HeroSection = () => {
     }
   ];
 
+  // Floating icon elements component (ambient icons + glow orbs)
+  const FloatingElements = () => {
+    const icons = [
+      { Icon: Heart, delay: 0, position: 'top-20 left-[10%]', size: 40 },
+      { Icon: Stethoscope, delay: 0.2, position: 'top-32 right-[12%]', size: 48 },
+      { Icon: Activity, delay: 0.4, position: 'bottom-40 left-[8%]', size: 44 },
+      { Icon: Pill, delay: 0.6, position: 'top-48 left-[15%]', size: 36 },
+      { Icon: Calendar, delay: 0.3, position: 'bottom-32 right-[15%]', size: 40 },
+      { Icon: ClipboardList, delay: 0.5, position: 'top-40 right-[8%]', size: 42 },
+    ];
+
+    return (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
+        {icons.map(({ Icon, delay, position, size }, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 0.22, scale: 1 }}
+            transition={{ delay: delay + 0.4, duration: 0.6 }}
+            className={`absolute ${position}`}
+          >
+            <motion.div
+              animate={{
+                y: [0, -20, 0],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 6 + index,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <Icon size={Math.round(size * 1.12)} className="text-green-700 drop-shadow-2xl" strokeWidth={1.6} />
+            </motion.div>
+          </motion.div>
+        ))}
+
+        {/* Ambient glow orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.25, 1],
+            opacity: [0.35, 0.6, 0.35],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute top-16 right-1/4 w-96 h-96 bg-green-700/12 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.35, 1],
+            opacity: [0.28, 0.5, 0.28],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1.2,
+          }}
+          className="absolute bottom-20 left-1/4 w-80 h-80 bg-emerald-700/12 rounded-full blur-3xl"
+        />
+      </div>
+    );
+  };
+
   return (
     // Full-bleed: set section to viewport width and center it using margin trick so background reaches edges
     <section
@@ -164,21 +229,8 @@ const HeroSection = () => {
         {/* subtle green tint overlay for brand feel */}
         <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 mix-blend-overlay pointer-events-none" />
 
-        {/* Floating decorative images (hidden on small screens) */}
-        <div className="absolute right-10 top-20 hidden lg:block z-10 animate-float">
-          <img
-            src={floatingHealthCard}
-            alt="Digital health card"
-            className="w-48 h-48 object-contain drop-shadow-2xl"
-          />
-        </div>
-        <div className="absolute right-32 bottom-32 hidden lg:block z-10 animate-float-delayed">
-          <img
-            src={floatingMedical}
-            alt="Medical stethoscope"
-            className="w-40 h-40 object-contain drop-shadow-2xl"
-          />
-        </div>
+        {/* Floating decorative icon elements (hidden on small screens) */}
+        <FloatingElements />
       </motion.div>
 
   <div className="w-full max-w-7xl mx-auto px-4 py-20 relative z-10">
