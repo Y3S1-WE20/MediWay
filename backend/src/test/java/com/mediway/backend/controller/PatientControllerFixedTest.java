@@ -1,5 +1,19 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (PatientControllerTest / PatientControllerFixedTest):
+ * - Get all patients - Success                     : Positive
+ * - Get patient by ID - Success                    : Positive
+ * - Get patient by ID - Not Found                  : Negative
+ * - Create patient - Success                       : Positive
+ * - Update patient - Success                       : Positive
+ * - Update patient - Not Found                     : Negative
+ * - Delete patient - Success                       : Positive
+ * - Delete patient - Not Found                     : Negative
+ * - Search patients by name - Success              : Positive
+ * - Get patients by gender - Success               : Positive
+ */
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;

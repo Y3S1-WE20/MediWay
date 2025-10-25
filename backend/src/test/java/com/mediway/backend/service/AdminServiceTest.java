@@ -1,5 +1,14 @@
 package com.mediway.backend.service;
 
+/*
+ * TESTS SUMMARY (AdminServiceTest):
+ * - Get all users / Get user by ID                        : Positive
+ * - Throw exception when user not found                   : Negative
+ * - Create / Update / Delete user                         : Positive
+ * - Get all doctors / doctor by ID                        : Positive
+ * - Admin-specific flows and error handling               : Mix (Positive/Negative)
+ */
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +88,7 @@ class AdminServiceTest {
         testAppointment.setStatus(Appointment.Status.SCHEDULED);
     }
 
+    // Positive: Get all users
     @Test
     @DisplayName("Should get all users")
     void getAllUsers_ReturnsAllUsers() {
@@ -99,6 +109,7 @@ class AdminServiceTest {
         verify(userRepository).findAll();
     }
 
+    // Positive: Get user by ID
     @Test
     @DisplayName("Should get user by ID")
     void getUserById_ExistingId_ReturnsUser() {
@@ -114,6 +125,7 @@ class AdminServiceTest {
         verify(userRepository).findById(1L);
     }
 
+    // Negative: Throw exception when user not found
     @Test
     @DisplayName("Should throw exception when user not found")
     void getUserById_NonExistingId_ThrowsException() {
@@ -125,6 +137,7 @@ class AdminServiceTest {
         verify(userRepository).findById(999L);
     }
 
+    // Positive: Create user successfully
     @Test
     @DisplayName("Should create user successfully")
     void createUser_ValidUser_ReturnsCreatedUser() {
@@ -140,6 +153,7 @@ class AdminServiceTest {
         verify(userRepository).save(testUser);
     }
 
+    // Positive: Update user successfully
     @Test
     @DisplayName("Should update user successfully")
     void updateUser_ValidUser_ReturnsUpdatedUser() {
@@ -159,6 +173,7 @@ class AdminServiceTest {
         verify(userRepository).save(testUser);
     }
 
+    // Positive: Delete user by ID
     @Test
     @DisplayName("Should delete user by ID")
     void deleteUser_ExistingId_DeletesUser() {
@@ -172,6 +187,7 @@ class AdminServiceTest {
         verify(userRepository).deleteById(1L);
     }
 
+    // Positive: Get all doctors
     @Test
     @DisplayName("Should get all doctors")
     void getAllDoctors_ReturnsAllDoctors() {
@@ -192,6 +208,7 @@ class AdminServiceTest {
         verify(doctorRepository).findAll();
     }
 
+    // Positive: Get doctor by ID
     @Test
     @DisplayName("Should get doctor by ID")
     void getDoctorById_ExistingId_ReturnsDoctor() {
@@ -207,6 +224,7 @@ class AdminServiceTest {
         verify(doctorRepository).findById(1L);
     }
 
+    // Negative: Throw exception when doctor not found
     @Test
     @DisplayName("Should throw exception when doctor not found")
     void getDoctorById_NonExistingId_ThrowsException() {
@@ -218,6 +236,7 @@ class AdminServiceTest {
         verify(doctorRepository).findById(999L);
     }
 
+    // Positive: Create doctor successfully
     @Test
     @DisplayName("Should create doctor successfully")
     void createDoctor_ValidDoctor_ReturnsCreatedDoctor() {
@@ -233,6 +252,7 @@ class AdminServiceTest {
         verify(doctorRepository).save(testDoctor);
     }
 
+    // Positive: Update doctor successfully
     @Test
     @DisplayName("Should update doctor successfully")
     void updateDoctor_ValidDoctor_ReturnsUpdatedDoctor() {
@@ -252,6 +272,7 @@ class AdminServiceTest {
         verify(doctorRepository).save(testDoctor);
     }
 
+    // Positive: Delete doctor by ID
     @Test
     @DisplayName("Should delete doctor by ID")
     void deleteDoctor_ExistingId_DeletesDoctor() {
@@ -265,6 +286,7 @@ class AdminServiceTest {
         verify(doctorRepository).deleteById(1L);
     }
 
+    // Positive: Get all appointments
     @Test
     @DisplayName("Should get all appointments")
     void getAllAppointments_ReturnsAllAppointments() {
@@ -285,6 +307,7 @@ class AdminServiceTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Positive: Get appointment by ID
     @Test
     @DisplayName("Should get appointment by ID")
     void getAppointmentById_ExistingId_ReturnsAppointment() {
@@ -300,6 +323,7 @@ class AdminServiceTest {
         verify(appointmentRepository).findById(1L);
     }
 
+    // Negative: Throw exception when appointment not found
     @Test
     @DisplayName("Should throw exception when appointment not found")
     void getAppointmentById_NonExistingId_ThrowsException() {
@@ -311,6 +335,7 @@ class AdminServiceTest {
         verify(appointmentRepository).findById(999L);
     }
 
+    // Positive: Update appointment status
     @Test
     @DisplayName("Should update appointment status")
     void updateAppointmentStatus_ValidStatus_ReturnsUpdatedAppointment() {
@@ -319,7 +344,7 @@ class AdminServiceTest {
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(testAppointment);
 
         // When
-        Appointment result = adminService.updateAppointmentStatus(1L, "COMPLETED");
+    Appointment result = adminService.updateAppointmentStatus(1L, "COMPLETED", null);
 
         // Then
         assertEquals(Appointment.Status.COMPLETED, result.getStatus());
@@ -327,6 +352,7 @@ class AdminServiceTest {
         verify(appointmentRepository).save(testAppointment);
     }
 
+    // Positive: Login admin successfully
     @Test
     @DisplayName("Should login admin successfully")
     void login_ValidCredentials_ReturnsLoginResponse() {
@@ -347,6 +373,7 @@ class AdminServiceTest {
         verify(adminRepository).findByEmail("admin@test.com");
     }
 
+    // Negative: Throw exception when admin not found during login
     @Test
     @DisplayName("Should throw exception when admin not found during login")
     void login_NonExistentEmail_ThrowsException() {
@@ -361,6 +388,7 @@ class AdminServiceTest {
         verify(adminRepository).findByEmail("nonexistent@test.com");
     }
 
+    // Negative: Throw exception when password is incorrect
     @Test
     @DisplayName("Should throw exception when password is incorrect")
     void login_IncorrectPassword_ThrowsException() {
@@ -375,6 +403,7 @@ class AdminServiceTest {
         verify(adminRepository).findByEmail("admin@test.com");
     }
 
+    // Positive: Generate CSV report
     @Test
     @DisplayName("Should generate CSV report")
     void generateCsvReport_ReturnsReportData() {
@@ -399,6 +428,7 @@ class AdminServiceTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Positive: Generate PDF report
     @Test
     @DisplayName("Should generate PDF report")
     void generatePdfReport_ReturnsReportData() {

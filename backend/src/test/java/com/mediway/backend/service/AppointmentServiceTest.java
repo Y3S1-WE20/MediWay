@@ -1,5 +1,15 @@
 package com.mediway.backend.service;
 
+/*
+ * TESTS SUMMARY (AppointmentServiceTest):
+ * - Create appointment success                             : Positive
+ * - Create fails when doctor/patient not found             : Negative
+ * - Retrieve patient/doctor appointments                   : Positive
+ * - Update appointment status (COMPLETED/CANCELLED)        : Positive
+ * - Delete appointment                                     : Positive
+ * - Concurrency and scheduling edge cases                  : Edge
+ */
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -75,6 +85,7 @@ class AppointmentServiceTest {
         testAppointment.setNotes("Regular checkup");
     }
 
+    // Positive: Successfully create appointment with available doctor
     @Test
     @DisplayName("Test 1: Successfully create appointment with available doctor")
     void testCreateAppointment_Success() {
@@ -95,6 +106,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
+    // Negative: Create appointment fails when doctor not found
     @Test
     @DisplayName("Test 2: Create appointment fails when doctor not found")
     void testCreateAppointment_DoctorNotFound() {
@@ -106,6 +118,7 @@ class AppointmentServiceTest {
         assertFalse(doctor.isPresent(), "Doctor should not exist");
     }
 
+    // Negative: Create appointment fails when patient not found
     @Test
     @DisplayName("Test 3: Create appointment fails when patient not found")
     void testCreateAppointment_PatientNotFound() {
@@ -117,6 +130,7 @@ class AppointmentServiceTest {
         assertFalse(patient.isPresent(), "Patient should not exist");
     }
 
+    // Positive: Retrieve all appointments for a specific patient
     @Test
     @DisplayName("Test 4: Retrieve all appointments for a specific patient")
     void testGetPatientAppointments() {
@@ -147,6 +161,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).findByPatientIdOrderByAppointmentDateDesc(1L);
     }
 
+    // Positive: Retrieve all appointments for a specific doctor
     @Test
     @DisplayName("Test 5: Retrieve all appointments for a specific doctor")
     void testGetDoctorAppointments() {
@@ -164,6 +179,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).findByDoctorIdOrderByAppointmentDateDesc(1L);
     }
 
+    // Positive: Update appointment status to COMPLETED
     @Test
     @DisplayName("Test 6: Update appointment status to COMPLETED")
     void testUpdateAppointmentStatus_Completed() {
@@ -181,6 +197,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
+    // Positive: Update appointment status to CANCELLED
     @Test
     @DisplayName("Test 7: Update appointment status to CANCELLED")
     void testUpdateAppointmentStatus_Cancelled() {
@@ -198,6 +215,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
+    // Positive: Delete appointment by ID
     @Test
     @DisplayName("Test 8: Delete appointment by ID")
     void testDeleteAppointment() {
@@ -212,6 +230,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).deleteById(1L);
     }
 
+    // Edge: Concurrency - Multiple appointments for same doctor at different times
     @Test
     @DisplayName("Test 9: Concurrency - Multiple appointments for same doctor at different times")
     void testConcurrency_MultipleAppointments_DifferentTimes() {
@@ -239,6 +258,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(2)).save(any(Appointment.class));
     }
 
+    // Positive: Retrieve appointments by status (SCHEDULED)
     @Test
     @DisplayName("Test 10: Retrieve appointments by status (SCHEDULED)")
     void testGetAppointmentsByStatus_Scheduled() {
@@ -256,6 +276,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).findByStatus(Appointment.Status.SCHEDULED);
     }
 
+    // Edge: Verify appointment dates are in the future
     @Test
     @DisplayName("Test 11: Verify appointment dates are in the future")
     void testAppointmentDate_InFuture() {
@@ -268,6 +289,7 @@ class AppointmentServiceTest {
                 "Appointment date should be in the future");
     }
 
+    // Positive: Validate appointment creation with notes
     @Test
     @DisplayName("Test 12: Validate appointment creation with notes")
     void testCreateAppointment_WithNotes() {
@@ -285,6 +307,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
+    // Edge: Empty appointments list for patient
     @Test
     @DisplayName("Test 13: Edge case - Empty appointments list for patient")
     void testGetPatientAppointments_Empty() {
@@ -301,6 +324,7 @@ class AppointmentServiceTest {
         verify(appointmentRepository, times(1)).findByPatientIdOrderByAppointmentDateDesc(99L);
     }
 
+    // Positive: Verify doctor availability check
     @Test
     @DisplayName("Test 14: Verify doctor availability check")
     void testDoctorAvailability() {
@@ -316,6 +340,7 @@ class AppointmentServiceTest {
         verify(doctorRepository, times(1)).findById(1L);
     }
 
+    // Edge: Appointment created with default SCHEDULED status
     @Test
     @DisplayName("Test 15: Appointment created with default SCHEDULED status")
     void testAppointment_DefaultStatus() {

@@ -1,5 +1,15 @@
 package com.mediway.backend.entity;
 
+/*
+ * TESTS SUMMARY (UserEntityTest):
+ * - Default constructor and default values              : Positive
+ * - Parameterized constructor                           : Positive
+ * - Getters/Setters coverage                            : Positive
+ * - Nullable optional fields                            : Edge
+ * - Role and email/format variations                    : Edge
+ * - PrePersist onCreate behavior                        : Edge
+ */
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,6 +30,7 @@ class UserEntityTest {
         user = new User();
     }
 
+    // Positive: Create User with default constructor and default values
     @Test
     @DisplayName("Should create User with default constructor and default values")
     void testDefaultConstructor() {
@@ -30,6 +41,7 @@ class UserEntityTest {
         assertNotNull(newUser.getCreatedAt());
     }
 
+    // Positive: Create User with parameterized constructor
     @Test
     @DisplayName("Should create User with parameterized constructor")
     void testParameterizedConstructor() {
@@ -41,6 +53,7 @@ class UserEntityTest {
         assertEquals(User.Role.PATIENT, newUser.getRole());
     }
 
+    // Positive: Set and get all User fields correctly
     @Test
     @DisplayName("Should set and get all User fields correctly")
     void testGettersAndSetters() {
@@ -85,6 +98,7 @@ class UserEntityTest {
         assertEquals(now, user.getCreatedAt());
     }
 
+    // Edge: Handle null values for optional fields
     @Test
     @DisplayName("Should handle null values for optional fields")
     void testNullableFields() {
@@ -109,6 +123,7 @@ class UserEntityTest {
         assertNull(user.getQrCode());
     }
 
+    // Edge: Handle special characters in text fields
     @Test
     @DisplayName("Should handle special characters in text fields")
     void testSpecialCharacters() {
@@ -121,6 +136,7 @@ class UserEntityTest {
         assertEquals("Pollen, dust & mold", user.getAllergies());
     }
 
+    // Edge: Handle different role values
     @Test
     @DisplayName("Should handle different role values")
     void testDifferentRoles() {
@@ -134,6 +150,7 @@ class UserEntityTest {
         assertEquals(User.Role.ADMIN, user.getRole());
     }
 
+    // Edge: Handle email format variations
     @Test
     @DisplayName("Should handle email format variations")
     void testEmailVariations() {
@@ -147,6 +164,7 @@ class UserEntityTest {
         assertEquals("user.name@sub.example.com", user.getEmail());
     }
 
+    // Edge: Handle PrePersist onCreate callback
     @Test
     @DisplayName("Should handle PrePersist onCreate callback")
     void testOnCreate() {
@@ -159,6 +177,7 @@ class UserEntityTest {
         assertEquals(User.Role.PATIENT, newUser.getRole());
     }
 
+    // Edge: Not override existing createdAt in onCreate
     @Test
     @DisplayName("Should not override existing createdAt in onCreate")
     void testOnCreateWithExistingTimestamp() {
@@ -169,6 +188,7 @@ class UserEntityTest {
         assertEquals(existingTime, user.getCreatedAt());
     }
 
+    // Edge: Handle blood type variations
     @Test
     @DisplayName("Should handle blood type variations")
     void testBloodTypeVariations() {
@@ -180,6 +200,7 @@ class UserEntityTest {
         }
     }
 
+    // Edge: Handle long text in medications and allergies
     @Test
     @DisplayName("Should handle long text in medications and allergies")
     void testLongTextFields() {

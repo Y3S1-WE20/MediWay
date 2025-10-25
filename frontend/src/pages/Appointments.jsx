@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard } from 'lucide-react';
+import { Calendar, Clock, Plus, X, CheckCircle, AlertCircle, DollarSign, CreditCard, Search } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import api from '../api/api';
 import { endpoints } from '../api/endpoints';
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
     fetchAppointments();
@@ -129,6 +134,31 @@ const Appointments = () => {
     );
   }
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="p-8 max-w-md w-full text-center">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Login Required</h2>
+            <p className="text-gray-600 mb-4">Please log in to view your appointments.</p>
+            <Button onClick={() => navigate('/login')} className="bg-blue-600 hover:bg-blue-700 text-white">Login</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -167,6 +197,40 @@ const Appointments = () => {
           </motion.div>
         )}
 
+        {/* Search and Filter Controls */}
+        {appointments.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search by doctor name, specialization..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Status Filter */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Appointments List */}
         {appointments.length === 0 ? (
           <motion.div
@@ -190,7 +254,28 @@ const Appointments = () => {
           </motion.div>
         ) : (
           <div className="grid gap-6">
-            {appointments.map((appointment, index) => (
+            {appointments.filter(appointment => {
+              const matchesSearch = 
+                appointment.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                appointment.doctorSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              const matchesStatus = 
+                statusFilter === 'ALL' || appointment.status === statusFilter;
+              
+              return matchesSearch && matchesStatus;
+            }).length > 0 ? (
+              appointments.filter(appointment => {
+                const matchesSearch = 
+                  appointment.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  appointment.doctorSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                const matchesStatus = 
+                  statusFilter === 'ALL' || appointment.status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+              }).map((appointment, index) => (
               <motion.div
                 key={appointment.appointmentId}
                 initial={{ opacity: 0, y: 20 }}
@@ -213,6 +298,23 @@ const Appointments = () => {
                             {appointment.reason && (
                               <p className="text-sm text-gray-500 mt-1">
                                 Reason: {appointment.reason}
+                              </p>
+                            )}
+                            {/* Show rejection reason if cancelled */}
+                            {appointment.status === 'CANCELLED' && appointment.notes && (
+                              <p className="text-sm text-red-600 mt-1 font-semibold">
+                                Cancelled: {appointment.notes}
+                              </p>
+                            )}
+                            {/* Show acceptance if completed/confirmed */}
+                            {(appointment.status === 'COMPLETED' && appointment.isPaid) && (
+                              <p className="text-sm text-green-600 mt-1 font-semibold">
+                                Appointment Completed
+                              </p>
+                            )}
+                            {(appointment.status === 'CONFIRMED' || (appointment.status === 'COMPLETED' && !appointment.isPaid)) && (
+                              <p className="text-sm text-green-600 mt-1 font-semibold">
+                                Appointment Accepted
                               </p>
                             )}
                           </div>
@@ -248,51 +350,64 @@ const Appointments = () => {
                       </div>
 
                       {/* Actions */}
-                      {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+                      {/* Only allow payment if appointment is accepted and not paid */}
+                      {(appointment.status === 'CONFIRMED' || (appointment.status === 'COMPLETED' && !appointment.isPaid)) && appointment.isPaid === false && appointment.consultationFee && (
                         <div className="flex flex-col gap-2">
-                          {appointment.consultationFee && !appointment.isPaid && appointment.status === 'SCHEDULED' && (
-                            <Button
-                              size="sm"
-                              onClick={() => handlePayNow(appointment)}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                            >
-                              <DollarSign className="w-4 h-4 mr-2" />
-                              Pay Now (${appointment.consultationFee.toFixed(2)})
-                            </Button>
-                          )}
-                          {appointment.isPaid && (
-                            <Badge className="bg-green-100 text-green-800">
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Paid
-                            </Badge>
-                          )}
                           <Button
-                            variant="outline"
                             size="sm"
-                            onClick={() => handleCancelAppointment(appointment.appointmentId)}
-                            disabled={cancelingId === appointment.appointmentId}
-                            className="text-red-600 hover:bg-red-50 border-red-200"
+                            onClick={() => handlePayNow(appointment)}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white"
                           >
-                            {cancelingId === appointment.appointmentId ? (
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"
-                              />
-                            ) : (
-                              <>
-                                <X className="w-4 h-4 mr-1" />
-                                Cancel
-                              </>
-                            )}
+                            <DollarSign className="w-4 h-4 mr-2" />
+                            Pay Now (${appointment.consultationFee.toFixed(2)})
                           </Button>
                         </div>
+                      )}
+                      {/* Show paid badge if paid */}
+                      {appointment.isPaid && (
+                        <Badge className="bg-green-100 text-green-800">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Paid
+                        </Badge>
+                      )}
+                      {/* Allow cancel if not completed/cancelled */}
+                      {appointment.status !== 'COMPLETED' && appointment.status !== 'CANCELLED' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCancelAppointment(appointment.appointmentId)}
+                          disabled={cancelingId === appointment.appointmentId}
+                          className="text-red-600 hover:bg-red-50 border-red-200"
+                        >
+                          {cancelingId === appointment.appointmentId ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full"
+                            />
+                          ) : (
+                            <>
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </>
+                          )}
+                        </Button>
                       )}
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
+            ))
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-500">
+                  {searchTerm || statusFilter !== 'ALL' 
+                    ? 'No appointments match your search criteria' 
+                    : 'No appointments found'}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

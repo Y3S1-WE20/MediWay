@@ -1,5 +1,20 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimpleAppointmentControllerTest):
+ * - Get all appointments - Success                   : Positive
+ * - Get all appointments - Empty list                : Edge
+ * - Get my appointments (with/without header)        : Positive / Edge
+ * - Filter my appointments by userId                : Positive
+ * - Error handling for get my appointments           : Negative
+ * - Get appointment by ID - Success / Not Found      : Positive / Negative
+ * - Create appointment - Success (with/without user) : Positive
+ * - Create appointment variations (optional fields)  : Edge
+ * - Update appointment - Success / Not Found         : Positive / Negative
+ * - Delete appointment - Success / Not Found         : Positive / Negative
+ * - appointmentToMap variations                      : Edge (mapping with/without details)
+ */
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,6 +103,7 @@ class SimpleAppointmentControllerTest {
         testAppointment.setNotes("Test appointment");
     }
 
+    // Positive: Get all appointments - Success
     @Test
     @DisplayName("Get all appointments - Success")
     void getAllAppointments_Success() throws Exception {
@@ -107,6 +123,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Edge: Get all appointments - Empty list
     @Test
     @DisplayName("Get all appointments - Empty list")
     void getAllAppointments_EmptyList() throws Exception {
@@ -122,6 +139,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Positive: Get my appointments - With userId header
     @Test
     @DisplayName("Get my appointments - With userId header")
     void getMyAppointments_WithUserId() throws Exception {
@@ -141,6 +159,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Edge: Get my appointments - Without userId header
     @Test
     @DisplayName("Get my appointments - Without userId header")
     void getMyAppointments_WithoutUserId() throws Exception {
@@ -158,6 +177,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Positive: Get my appointments - Filter by userId
     @Test
     @DisplayName("Get my appointments - Filter by userId")
     void getMyAppointments_FilterByUserId() throws Exception {
@@ -184,6 +204,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Negative: Get my appointments - Error handling
     @Test
     @DisplayName("Get my appointments - Error handling")
     void getMyAppointments_Error() throws Exception {
@@ -200,6 +221,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findAll();
     }
 
+    // Positive: Get appointment by ID - Success
     @Test
     @DisplayName("Get appointment by ID - Success")
     void getAppointmentById_Success() throws Exception {
@@ -218,6 +240,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findById(1L);
     }
 
+    // Negative: Get appointment by ID - Not Found
     @Test
     @DisplayName("Get appointment by ID - Not Found")
     void getAppointmentById_NotFound() throws Exception {
@@ -231,6 +254,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).findById(1L);
     }
 
+    // Positive: Create appointment - Success with header
     @Test
     @DisplayName("Create appointment - Success with header")
     void createAppointment_SuccessWithHeader() throws Exception {
@@ -257,6 +281,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
+    // Positive: Create appointment - Success without userId
     @Test
     @DisplayName("Create appointment - Success without userId (defaults to 1)")
     void createAppointment_SuccessWithoutUserId() throws Exception {
@@ -281,6 +306,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
+    // Edge: Create appointment - Without reason
     @Test
     @DisplayName("Create appointment - Without reason (optional field)")
     void createAppointment_WithoutReason() throws Exception {
@@ -306,6 +332,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
+    // Negative: Create appointment - Error handling
     @Test
     @DisplayName("Create appointment - Error handling")
     void createAppointment_Error() throws Exception {
@@ -327,6 +354,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository, never()).save(any());
     }
 
+    // Positive: Update appointment - Success
     @Test
     @DisplayName("Update appointment - Success")
     void updateAppointment_Success() throws Exception {
@@ -354,6 +382,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
+    // Negative: Update appointment - Not Found
     @Test
     @DisplayName("Update appointment - Not Found")
     void updateAppointment_NotFound() throws Exception {
@@ -377,6 +406,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository, never()).save(any());
     }
 
+    // Positive: Delete appointment - Success
     @Test
     @DisplayName("Delete appointment - Success")
     void deleteAppointment_Success() throws Exception {
@@ -391,6 +421,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository).delete(testAppointment);
     }
 
+    // Negative: Delete appointment - Not Found
     @Test
     @DisplayName("Delete appointment - Not Found")
     void deleteAppointment_NotFound() throws Exception {
@@ -405,6 +436,7 @@ class SimpleAppointmentControllerTest {
         verify(appointmentRepository, never()).delete(any());
     }
 
+    // Edge: Appointment to map - With doctor and patient details
     @Test
     @DisplayName("Appointment to map - With doctor and patient details")
     void appointmentToMap_WithDoctorAndPatient() throws Exception {
@@ -437,6 +469,7 @@ class SimpleAppointmentControllerTest {
         verify(userRepository).findById(1L);
     }
 
+    // Edge: Appointment to map - Without doctor details
     @Test
     @DisplayName("Appointment to map - Without doctor details")
     void appointmentToMap_WithoutDoctor() throws Exception {
@@ -454,6 +487,7 @@ class SimpleAppointmentControllerTest {
         verify(doctorRepository).findById(1L);
     }
 
+    // Edge: Appointment to map - Without patient details
     @Test
     @DisplayName("Appointment to map - Without patient details")
     void appointmentToMap_WithoutPatient() throws Exception {

@@ -1,5 +1,14 @@
 package com.mediway.backend.security;
 
+/*
+ * TESTS SUMMARY (JwtUtilTest):
+ * - Generate valid JWT token                              : Positive
+ * - Extract username and expiration                       : Positive
+ * - Validate token success/failure                        : Positive / Negative
+ * - Handle expired tokens                                  : Negative (edge)
+ * - Extract role claim and expiration time                : Edge
+ */
+
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -31,6 +40,7 @@ class JwtUtilTest {
         ReflectionTestUtils.setField(jwtUtil, "expiration", testExpiration);
     }
 
+    // Positive: Generate valid JWT token
     @Test
     @DisplayName("Should generate valid JWT token")
     void testGenerateToken() {
@@ -44,6 +54,7 @@ class JwtUtilTest {
         assertTrue(token.split("\\.").length == 3); // JWT has 3 parts
     }
 
+    // Positive: Extract username from token
     @Test
     @DisplayName("Should extract username from token")
     void testExtractUsername() {
@@ -55,6 +66,7 @@ class JwtUtilTest {
         assertEquals(username, extractedUsername);
     }
 
+    // Positive: Extract expiration date from token
     @Test
     @DisplayName("Should extract expiration date from token")
     void testExtractExpiration() {
@@ -66,6 +78,7 @@ class JwtUtilTest {
         assertTrue(expirationDate.after(new Date()));
     }
 
+    // Positive: Validate token successfully
     @Test
     @DisplayName("Should validate token successfully")
     void testValidateToken() {
@@ -83,6 +96,7 @@ class JwtUtilTest {
         assertTrue(isValid);
     }
 
+    // Negative: Invalidate token with wrong username
     @Test
     @DisplayName("Should invalidate token with wrong username")
     void testInvalidateTokenWithWrongUsername() {
@@ -99,6 +113,7 @@ class JwtUtilTest {
         assertFalse(isValid);
     }
 
+    // Edge: Extract role claim from token
     @Test
     @DisplayName("Should extract role claim from token")
     void testExtractRoleClaim() {
@@ -111,6 +126,7 @@ class JwtUtilTest {
         assertEquals(role, extractedRole);
     }
 
+    // Edge: Get expiration time
     @Test
     @DisplayName("Should get expiration time")
     void testGetExpirationTime() {
@@ -120,6 +136,7 @@ class JwtUtilTest {
         assertEquals(testExpiration, expirationTime);
     }
 
+    // Negative: Handle expired token
     @Test
     @DisplayName("Should handle expired token")
     void testExpiredToken() {
@@ -151,6 +168,7 @@ class JwtUtilTest {
         assertNotNull(exception, "Exception should be thrown for expired token");
     }
 
+    // Positive: Generate different tokens for different users
     @Test
     @DisplayName("Should generate different tokens for different users")
     void testGenerateDifferentTokensForDifferentUsers() {
@@ -160,6 +178,7 @@ class JwtUtilTest {
         assertNotEquals(token1, token2);
     }
 
+    // Positive: Generate different tokens for same user at different times
     @Test
     @DisplayName("Should generate different tokens for same user at different times")
     void testGenerateDifferentTokensAtDifferentTimes() throws InterruptedException {

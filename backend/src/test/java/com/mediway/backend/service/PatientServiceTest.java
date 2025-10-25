@@ -1,5 +1,13 @@
 package com.mediway.backend.service;
 
+/*
+ * TESTS SUMMARY (PatientServiceTest):
+ * - Register patient successfully                           : Positive
+ * - Register with all fields                                 : Positive
+ * - Login success / non-existent / incorrect password         : Positive / Negative
+ * - Find by health ID (valid/invalid/null)                   : Positive / Edge
+ */
+
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,6 +71,7 @@ class PatientServiceTest {
         testUser.setRole(User.Role.PATIENT);
     }
 
+    // Positive: Register patient successfully
     @Test
     @DisplayName("Should register patient successfully")
     void register_ValidRequest_ReturnsSuccessResponse() {
@@ -78,6 +87,7 @@ class PatientServiceTest {
         verify(userRepository).save(any(User.class));
     }
 
+    // Positive: Register with all fields
     @Test
     @DisplayName("Should register patient with all fields")
     void register_WithAllFields_SavesUserCorrectly() {
@@ -103,6 +113,7 @@ class PatientServiceTest {
         ));
     }
 
+    // Positive: Login success
     @Test
     @DisplayName("Should login patient successfully with valid credentials")
     void login_ValidCredentials_ReturnsSuccessResponse() {
@@ -120,6 +131,7 @@ class PatientServiceTest {
         verify(userRepository).findByEmail("patient@test.com");
     }
 
+    // Negative: Login with non-existent email
     @Test
     @DisplayName("Should throw exception when patient not found during login")
     void login_NonExistentEmail_ThrowsException() {
@@ -134,6 +146,7 @@ class PatientServiceTest {
         verify(userRepository).findByEmail("nonexistent@test.com");
     }
 
+    // Negative: Login with incorrect password
     @Test
     @DisplayName("Should throw exception when password is incorrect")
     void login_IncorrectPassword_ThrowsException() {
@@ -148,6 +161,7 @@ class PatientServiceTest {
         verify(userRepository).findByEmail("patient@test.com");
     }
 
+    // Positive: Find by valid health ID
     @Test
     @DisplayName("Should find user by health ID successfully")
     void findByHealthId_ValidId_ReturnsUser() {
@@ -164,6 +178,7 @@ class PatientServiceTest {
         verify(userRepository).findById(1L);
     }
 
+    // Edge: Find by non-existent health ID
     @Test
     @DisplayName("Should return empty when user not found by health ID")
     void findByHealthId_NonExistentId_ReturnsEmpty() {
@@ -178,6 +193,7 @@ class PatientServiceTest {
         verify(userRepository).findById(999L);
     }
 
+    // Edge: Find by invalid health ID format
     @Test
     @DisplayName("Should return empty for invalid health ID format")
     void findByHealthId_InvalidFormat_ReturnsEmpty() {
@@ -189,6 +205,7 @@ class PatientServiceTest {
         verify(userRepository, never()).findById(anyLong());
     }
 
+    // Edge: Find by null health ID
     @Test
     @DisplayName("Should handle null health ID")
     void findByHealthId_NullId_ReturnsEmpty() {
@@ -200,6 +217,7 @@ class PatientServiceTest {
         verify(userRepository, never()).findById(anyLong());
     }
 
+    // Edge: Find by empty health ID
     @Test
     @DisplayName("Should handle empty health ID")
     void findByHealthId_EmptyId_ReturnsEmpty() {
@@ -211,6 +229,7 @@ class PatientServiceTest {
         verify(userRepository, never()).findById(anyLong());
     }
 
+    // Edge: Find by negative health ID
     @Test
     @DisplayName("Should return empty for negative health ID")
     void findByHealthId_NegativeId_ReturnsEmpty() {
@@ -225,6 +244,7 @@ class PatientServiceTest {
         verify(userRepository).findById(-1L);
     }
 
+    // Edge: Find by zero health ID
     @Test
     @DisplayName("Should handle zero health ID")
     void findByHealthId_ZeroId_CallsRepository() {
@@ -239,6 +259,7 @@ class PatientServiceTest {
         verify(userRepository).findById(0L);
     }
 
+    // Edge: Find by large health ID
     @Test
     @DisplayName("Should handle large health ID")
     void findByHealthId_LargeId_CallsRepository() {
@@ -254,6 +275,7 @@ class PatientServiceTest {
         verify(userRepository).findById(largeId);
     }
 
+    // Positive: Register patient with DOCTOR role
     @Test
     @DisplayName("Should register patient with DOCTOR role")
     void register_DoctorRole_SavesCorrectly() {
@@ -269,6 +291,7 @@ class PatientServiceTest {
         verify(userRepository).save(argThat(user -> user.getRole() == User.Role.DOCTOR));
     }
 
+    // Positive: Login with different user roles
     @Test
     @DisplayName("Should login with different user roles")
     void login_DifferentRoles_ReturnsCorrectRole() {

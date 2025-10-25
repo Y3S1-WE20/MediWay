@@ -103,9 +103,15 @@ public class AdminService {
         return appointmentRepository.findById(id).orElseThrow(() -> new RuntimeException("Appointment not found"));
     }
 
-    public Appointment updateAppointmentStatus(Long id, String status) {
+    public Appointment updateAppointmentStatus(Long id, String status, String reason) {
         Appointment appointment = getAppointmentById(id);
         appointment.setStatus(Appointment.Status.valueOf(status.toUpperCase()));
+        // If status is CANCELLED or REJECTED and reason is provided, set notes
+        if ((status.equalsIgnoreCase("CANCELLED") || status.equalsIgnoreCase("REJECTED")) && reason != null && !reason.isEmpty()) {
+            appointment.setNotes(reason);
+        } else if (status.equalsIgnoreCase("COMPLETED")) {
+            appointment.setNotes(null); // Clear notes on completion
+        }
         return appointmentRepository.save(appointment);
     }
 

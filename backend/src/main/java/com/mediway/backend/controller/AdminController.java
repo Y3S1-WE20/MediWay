@@ -108,8 +108,11 @@ public class AdminController {
     }
 
     @PutMapping("/admin/appointments/{id}/status")
-    public ResponseEntity<Appointment> updateAppointmentStatus(@PathVariable Long id, @RequestParam String status) {
-        Appointment updatedAppointment = adminService.updateAppointmentStatus(id, status);
+    public ResponseEntity<Appointment> updateAppointmentStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @RequestParam(required = false) String reason) {
+        Appointment updatedAppointment = adminService.updateAppointmentStatus(id, status, reason);
         return ResponseEntity.ok(updatedAppointment);
     }
 }

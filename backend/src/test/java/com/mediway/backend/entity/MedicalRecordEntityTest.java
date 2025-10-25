@@ -1,5 +1,14 @@
 package com.mediway.backend.entity;
 
+/*
+ * TESTS SUMMARY (MedicalRecordEntityTest):
+ * - Default and parameterized constructors               : Positive
+ * - Getters and setters                                 : Positive
+ * - Nullable optional fields handling                   : Edge
+ * - PrePersist onCreate callback                        : Edge
+ * - Long text and special characters handling           : Edge
+ */
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +28,7 @@ class MedicalRecordEntityTest {
         medicalRecord = new MedicalRecord();
     }
 
+    // Positive: Create MedicalRecord with default constructor and default values
     @Test
     @DisplayName("Should create MedicalRecord with default constructor and default values")
     void testDefaultConstructor() {
@@ -28,6 +38,7 @@ class MedicalRecordEntityTest {
         assertNotNull(newRecord.getRecordDate());
     }
 
+    // Positive: Create MedicalRecord with parameterized constructor
     @Test
     @DisplayName("Should create MedicalRecord with parameterized constructor")
     void testParameterizedConstructor() {
@@ -48,6 +59,7 @@ class MedicalRecordEntityTest {
         assertEquals("Patient advised to reduce salt intake", newRecord.getNotes());
     }
 
+    // Positive: Set and get all MedicalRecord fields correctly
     @Test
     @DisplayName("Should set and get all MedicalRecord fields correctly")
     void testGettersAndSetters() {
@@ -74,6 +86,7 @@ class MedicalRecordEntityTest {
         assertEquals(recordDate, medicalRecord.getRecordDate());
     }
 
+    // Edge: Handle null values for optional fields
     @Test
     @DisplayName("Should handle null values for optional fields")
     void testNullableFields() {
@@ -90,6 +103,7 @@ class MedicalRecordEntityTest {
         assertNull(medicalRecord.getNotes());
     }
 
+    // Edge: Handle PrePersist onCreate callback
     @Test
     @DisplayName("Should handle PrePersist onCreate callback")
     void testOnCreate() {
@@ -100,6 +114,7 @@ class MedicalRecordEntityTest {
         assertNotNull(newRecord.getRecordDate());
     }
 
+    // Edge: Not override existing recordDate in onCreate
     @Test
     @DisplayName("Should not override existing recordDate in onCreate")
     void testOnCreateWithExistingDate() {
@@ -110,6 +125,7 @@ class MedicalRecordEntityTest {
         assertEquals(existingDate, medicalRecord.getRecordDate());
     }
 
+    // Edge: Handle long text in diagnosis field
     @Test
     @DisplayName("Should handle long text in diagnosis field")
     void testLongDiagnosis() {
@@ -119,6 +135,7 @@ class MedicalRecordEntityTest {
         assertEquals(longDiagnosis, medicalRecord.getDiagnosis());
     }
 
+    // Edge: Handle long text in treatment field
     @Test
     @DisplayName("Should handle long text in treatment field")
     void testLongTreatment() {
@@ -128,6 +145,7 @@ class MedicalRecordEntityTest {
         assertEquals(longTreatment, medicalRecord.getTreatment());
     }
 
+    // Edge: Handle long text in prescription field
     @Test
     @DisplayName("Should handle long text in prescription field")
     void testLongPrescription() {
@@ -136,6 +154,7 @@ class MedicalRecordEntityTest {
         assertEquals(longPrescription, medicalRecord.getPrescription());
     }
 
+    // Edge: Handle special characters in text fields
     @Test
     @DisplayName("Should handle special characters in text fields")
     void testSpecialCharacters() {

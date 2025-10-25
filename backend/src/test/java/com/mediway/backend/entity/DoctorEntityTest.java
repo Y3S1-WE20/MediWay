@@ -1,5 +1,15 @@
 package com.mediway.backend.entity;
 
+/*
+ * TESTS SUMMARY (DoctorEntityTest):
+ * - Default constructor and defaults                    : Positive
+ * - Parameterized constructor                           : Positive
+ * - Getters/Setters and nullable fields                 : Positive / Edge
+ * - Availability toggle                                  : Edge
+ * - PrePersist onCreate behavior                         : Edge
+ * - Photo byte array handling                            : Edge
+ */
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -22,6 +32,7 @@ class DoctorEntityTest {
         doctor = new Doctor();
     }
 
+    // Positive: Create Doctor with default constructor and default values
     @Test
     @DisplayName("Should create Doctor with default constructor and default values")
     void testDefaultConstructor() {
@@ -32,6 +43,7 @@ class DoctorEntityTest {
         assertNotNull(newDoctor.getCreatedAt());
     }
 
+    // Positive: Create Doctor with parameterized constructor
     @Test
     @DisplayName("Should create Doctor with parameterized constructor")
     void testParameterizedConstructor() {
@@ -44,6 +56,7 @@ class DoctorEntityTest {
         assertTrue(newDoctor.getAvailable());
     }
 
+    // Positive: Set and get all Doctor fields correctly
     @Test
     @DisplayName("Should set and get all Doctor fields correctly")
     void testGettersAndSetters() {
@@ -72,6 +85,7 @@ class DoctorEntityTest {
         assertEquals(now, doctor.getCreatedAt());
     }
 
+    // Edge: Handle null values for optional fields
     @Test
     @DisplayName("Should handle null values for optional fields")
     void testNullableFields() {
@@ -84,6 +98,7 @@ class DoctorEntityTest {
         assertNull(doctor.getPhotoContentType());
     }
 
+    // Edge: Handle availability toggle
     @Test
     @DisplayName("Should handle availability toggle")
     void testAvailabilityToggle() {
@@ -94,6 +109,7 @@ class DoctorEntityTest {
         assertFalse(doctor.getAvailable());
     }
 
+    // Edge: Handle different specializations
     @Test
     @DisplayName("Should handle different specializations")
     void testDifferentSpecializations() {
@@ -108,6 +124,7 @@ class DoctorEntityTest {
         }
     }
 
+    // Edge: Handle PrePersist onCreate callback
     @Test
     @DisplayName("Should handle PrePersist onCreate callback")
     void testOnCreate() {
@@ -120,6 +137,7 @@ class DoctorEntityTest {
         assertTrue(newDoctor.getAvailable());
     }
 
+    // Edge: Not override existing createdAt in onCreate
     @Test
     @DisplayName("Should not override existing createdAt in onCreate")
     void testOnCreateWithExistingTimestamp() {
@@ -132,6 +150,7 @@ class DoctorEntityTest {
         assertFalse(doctor.getAvailable());
     }
 
+    // Edge: Handle photo byte array
     @Test
     @DisplayName("Should handle photo byte array")
     void testPhotoByteArray() {
@@ -147,6 +166,7 @@ class DoctorEntityTest {
         assertEquals("image/png", doctor.getPhotoContentType());
     }
 
+    // Edge: Handle different photo content types
     @Test
     @DisplayName("Should handle different photo content types")
     void testPhotoContentTypes() {

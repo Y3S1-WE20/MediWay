@@ -1,5 +1,13 @@
 package com.mediway.backend.service;
 
+/*
+ * TESTS SUMMARY (DoctorServiceTest):
+ * - Create doctor and photo handling                        : Positive / Edge
+ * - List and get doctor by ID                                : Positive
+ * - Update/delete doctor                                     : Positive
+ * - Set doctor password and login flows                       : Positive / Negative
+ */
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -63,6 +71,7 @@ class DoctorServiceTest {
         testDoctor.setPassword("password123");
     }
 
+    // Positive: Successfully create a new doctor
     @Test
     @DisplayName("Test 1: Successfully create a new doctor")
     void testCreateDoctor_Success() throws Exception {
@@ -81,6 +90,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: Create doctor with photo upload
     @Test
     @DisplayName("Test 2: Create doctor with photo upload")
     void testCreateDoctor_WithPhoto() throws Exception {
@@ -100,6 +110,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: List all doctors
     @Test
     @DisplayName("Test 3: List all doctors")
     void testListAllDoctors() {
@@ -124,6 +135,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findAll();
     }
 
+    // Positive: Get doctor by ID successfully
     @Test
     @DisplayName("Test 4: Get doctor by ID successfully")
     void testGetDoctorById_Success() {
@@ -140,6 +152,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findById(1L);
     }
 
+    // Negative: Get doctor by ID - not found
     @Test
     @DisplayName("Test 5: Get doctor by ID - not found")
     void testGetDoctorById_NotFound() {
@@ -151,6 +164,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findById(99L);
     }
 
+    // Positive: Update doctor details
     @Test
     @DisplayName("Test 6: Update doctor details")
     void testUpdateDoctor() throws Exception {
@@ -171,6 +185,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: Delete doctor by ID
     @Test
     @DisplayName("Test 7: Delete doctor by ID")
     void testDeleteDoctor() {
@@ -184,6 +199,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).deleteById(1L);
     }
 
+    // Positive: Set doctor password
     @Test
     @DisplayName("Test 8: Set doctor password")
     void testSetDoctorPassword() {
@@ -199,6 +215,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: Doctor login successful
     @Test
     @DisplayName("Test 9: Doctor login successful")
     void testDoctorLogin_Success() {
@@ -214,6 +231,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
     }
 
+    // Negative: Doctor login fails with wrong password
     @Test
     @DisplayName("Test 10: Doctor login fails with wrong password")
     void testDoctorLogin_WrongPassword() {
@@ -226,6 +244,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
     }
 
+    // Negative: Doctor login fails with non-existent email
     @Test
     @DisplayName("Test 11: Doctor login fails with non-existent email")
     void testDoctorLogin_EmailNotFound() {
@@ -238,6 +257,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("nonexistent@hospital.com");
     }
 
+    // Positive: Get all appointments for a doctor
     @Test
     @DisplayName("Test 12: Get all appointments for a doctor")
     void testGetDoctorAppointments() {
@@ -270,6 +290,7 @@ class DoctorServiceTest {
         verify(appointmentRepository, times(1)).findByDoctorIdOrderByAppointmentDateDesc(1L);
     }
 
+    // Edge: Update doctor with empty strings
     @Test
     @DisplayName("Test 13: Update doctor with empty strings (should not update)")
     void testUpdateDoctor_EmptyStrings() throws Exception {
@@ -287,6 +308,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: Verify doctor availability status
     @Test
     @DisplayName("Test 14: Verify doctor availability status")
     void testDoctorAvailability() {
@@ -301,6 +323,7 @@ class DoctorServiceTest {
         assertTrue(doctor.getAvailable());
     }
 
+    // Edge: Empty doctor list
     @Test
     @DisplayName("Test 15: Edge case - Empty doctor list")
     void testListDoctors_Empty() {
@@ -316,6 +339,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findAll();
     }
 
+    // Edge: Update doctor with null values
     @Test
     @DisplayName("Test 16: Update doctor with null values (should not update)")
     void testUpdateDoctor_NullValues() throws Exception {
@@ -334,6 +358,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Edge: Update doctor with whitespace strings
     @Test
     @DisplayName("Test 17: Update doctor with whitespace strings (should not update)")
     void testUpdateDoctor_WhitespaceStrings() throws Exception {
@@ -350,6 +375,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: Update doctor with photo
     @Test
     @DisplayName("Test 18: Update doctor with photo")
     void testUpdateDoctor_WithPhoto() throws Exception {
@@ -372,6 +398,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Positive: LoginRequest - successful login
     @Test
     @DisplayName("Test 19: LoginRequest - successful login")
     void testLoginWithRequest_Success() {
@@ -394,6 +421,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
     }
 
+    // Negative: LoginRequest - failed login (wrong password)
     @Test
     @DisplayName("Test 20: LoginRequest - failed login (wrong password)")
     void testLoginWithRequest_WrongPassword() {
@@ -409,6 +437,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("smith@hospital.com");
     }
 
+    // Negative: LoginRequest - failed login (email not found)
     @Test
     @DisplayName("Test 21: LoginRequest - failed login (email not found)")
     void testLoginWithRequest_EmailNotFound() {
@@ -424,6 +453,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).findByEmail("nonexistent@hospital.com");
     }
 
+    // Positive: Get appointments by doctor with formatted details
     @Test
     @DisplayName("Test 22: Get appointments by doctor with formatted details")
     void testGetAppointmentsByDoctor_WithDetails() {
@@ -471,6 +501,7 @@ class DoctorServiceTest {
         verify(appointmentRepository, times(1)).findByDoctorIdOrderByAppointmentDateDesc(1L);
     }
 
+    // Edge: Create doctor with empty photo
     @Test
     @DisplayName("Test 23: Create doctor with empty photo")
     void testCreateDoctor_WithEmptyPhoto() throws Exception {
@@ -488,6 +519,7 @@ class DoctorServiceTest {
         verify(doctorRepository, times(1)).save(any(Doctor.class));
     }
 
+    // Edge: Update doctor with empty photo
     @Test
     @DisplayName("Test 24: Update doctor with empty photo")
     void testUpdateDoctor_WithEmptyPhoto() throws Exception {

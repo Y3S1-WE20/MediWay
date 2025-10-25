@@ -1,5 +1,14 @@
 package com.mediway.backend.security;
 
+/*
+ * TESTS SUMMARY (CustomUserDetailsServiceTest):
+ * - Load patient user by email                           : Positive
+ * - Load doctor user by email                            : Positive
+ * - Load admin user by email                             : Positive
+ * - Throw UsernameNotFoundException when missing         : Negative
+ * - Handle edge cases: null/empty emails and role priority: Edge/Negative
+ */
+
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

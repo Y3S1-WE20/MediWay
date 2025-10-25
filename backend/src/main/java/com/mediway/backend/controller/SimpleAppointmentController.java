@@ -30,12 +30,15 @@ public class SimpleAppointmentController {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
-    
+
     @Autowired
     private DoctorRepository doctorRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private com.mediway.backend.repository.PaymentRepository paymentRepository;
 
     // Helper method to convert Appointment to detailed response
     private Map<String, Object> appointmentToMap(Appointment appointment) {
@@ -64,10 +67,22 @@ public class SimpleAppointmentController {
             map.put("patientPhone", patient.getPhone());
         });
         
-    // Add payment info (default for prototype)
+    // Add payment info
     map.put("consultationFee", 500.00);
-    map.put("paymentStatus", "PENDING");
-    map.put("isPaid", false);
+    // Check if payment is completed for this appointment
+    boolean paid = false;
+    try {
+        List<com.mediway.backend.entity.Payment> payments = paymentRepository.findByAppointmentIdOrderByPaymentDateDesc(appointment.getId());
+        paid = payments.stream().anyMatch(p -> p.getStatus() == com.mediway.backend.entity.Payment.Status.COMPLETED);
+        if (paid) {
+            map.put("paymentStatus", "COMPLETED");
+        } else {
+            map.put("paymentStatus", "PENDING");
+        }
+    } catch (Exception e) {
+        map.put("paymentStatus", "PENDING");
+    }
+    map.put("isPaid", paid);
         
         return map;
     }

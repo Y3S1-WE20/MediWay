@@ -1,5 +1,15 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (SimpleProfileControllerTest):
+ * - Get profile with valid user ID                    : Positive
+ * - Default user ID when null                         : Edge
+ * - Return 404 when user not found                    : Negative
+ * - Update profile success and partial updates       : Positive / Edge
+ * - Change password success and wrong current pass   : Positive / Negative
+ * - Missing fields handling                           : Edge
+ */
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +65,7 @@ class SimpleProfileControllerTest {
         testUser.setPassword("hashedPassword");
     }
 
+    // Positive: Get profile with valid user ID
     @Test
     @DisplayName("Should get profile with valid user ID")
     void testGetProfile_Success() {
@@ -67,6 +78,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, times(1)).findById(1L);
     }
 
+    // Edge: Default user ID when null
     @Test
     @DisplayName("Should use default user ID when null")
     void testGetProfile_DefaultUserId() {
@@ -78,6 +90,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, times(1)).findById(1L);
     }
 
+    // Negative: Return 404 when user not found
     @Test
     @DisplayName("Should return 404 when user not found")
     void testGetProfile_UserNotFound() {
@@ -88,6 +101,7 @@ class SimpleProfileControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
+    // Positive: Update profile successfully
     @Test
     @DisplayName("Should update profile successfully")
     void testUpdateProfile_Success() {
@@ -105,6 +119,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    // Negative: Return 404 when updating non-existent user
     @Test
     @DisplayName("Should return 404 when updating non-existent user")
     void testUpdateProfile_UserNotFound() {
@@ -119,6 +134,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, never()).save(any());
     }
 
+    // Positive: Change password successfully
     @Test
     @DisplayName("Should change password successfully")
     void testChangePassword_Success() {
@@ -137,6 +153,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    // Negative: Reject password change with wrong current password
     @Test
     @DisplayName("Should reject password change with wrong current password")
     void testChangePassword_WrongCurrentPassword() {
@@ -153,6 +170,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, never()).save(any());
     }
 
+    // Negative: Return 404 when changing password for non-existent user
     @Test
     @DisplayName("Should return 404 when changing password for non-existent user")
     void testChangePassword_UserNotFound() {
@@ -167,6 +185,7 @@ class SimpleProfileControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
+    // Edge: Handle missing fields in profile update
     @Test
     @DisplayName("Should handle missing fields in profile update")
     void testUpdateProfile_PartialUpdate() {
@@ -182,6 +201,7 @@ class SimpleProfileControllerTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    // Edge: Handle null updates map
     @Test
     @DisplayName("Should handle null updates map")
     void testUpdateProfile_NullUpdates() {

@@ -1,5 +1,23 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (AdminControllerTest):
+ * - Get all users - Success                     : Positive - returns list of users
+ * - Get user by ID - Success                   : Positive - returns specific user
+ * - Create user - Success                      : Positive - creates and returns user
+ * - Update user - Success                      : Positive - updates and returns user
+ * - Delete user - Success                      : Positive - deletes user
+ * - Admin login - Success                      : Positive - successful login flow
+ * - Get all doctors - Success                  : Positive - returns list of doctors
+ * - Get doctor by ID - Success                 : Positive
+ * - Create doctor - Success                    : Positive
+ * - Update doctor - Success                    : Positive
+ * - Delete doctor - Success                    : Positive
+ * - Get all appointments - Success             : Positive
+ * - Get appointment by ID - Success            : Positive
+ * - Update appointment status - Success       : Positive
+ */
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -77,6 +95,7 @@ class AdminControllerTest {
         loginResponse.setName("Admin User");
     }
 
+    // Positive: Retrieves all users successfully
     @Test
     @DisplayName("Get all users - Success")
     void testGetAllUsers() {
@@ -91,6 +110,7 @@ class AdminControllerTest {
         verify(adminService).getAllUsers();
     }
 
+    // Positive: Retrieves user by ID successfully
     @Test
     @DisplayName("Get user by ID - Success")
     void testGetUserById() {
@@ -104,6 +124,7 @@ class AdminControllerTest {
         verify(adminService).getUserById(1L);
     }
 
+    // Positive: Creates a user successfully
     @Test
     @DisplayName("Create user - Success")
     void testCreateUser() {
@@ -117,6 +138,7 @@ class AdminControllerTest {
         verify(adminService).createUser(any(User.class));
     }
 
+    // Positive: Updates a user successfully
     @Test
     @DisplayName("Update user - Success")
     void testUpdateUser() {
@@ -129,6 +151,7 @@ class AdminControllerTest {
         verify(adminService).updateUser(eq(1L), any(User.class));
     }
 
+    // Positive: Deletes a user successfully
     @Test
     @DisplayName("Delete user - Success")
     void testDeleteUser() {
@@ -140,6 +163,7 @@ class AdminControllerTest {
         verify(adminService).deleteUser(1L);
     }
 
+    // Positive: Admin login succeeds
     @Test
     @DisplayName("Admin login - Success")
     void testAdminLogin() {
@@ -154,6 +178,7 @@ class AdminControllerTest {
         verify(adminService).login(any(LoginRequest.class));
     }
 
+    // Positive: Retrieves all doctors successfully
     @Test
     @DisplayName("Get all doctors - Success")
     void testGetAllDoctors() {
@@ -168,6 +193,7 @@ class AdminControllerTest {
         verify(adminService).getAllDoctors();
     }
 
+    // Positive: Retrieves doctor by ID successfully
     @Test
     @DisplayName("Get doctor by ID - Success")
     void testGetDoctorById() {
@@ -181,6 +207,7 @@ class AdminControllerTest {
         verify(adminService).getDoctorById(1L);
     }
 
+    // Positive: Creates a doctor successfully
     @Test
     @DisplayName("Create doctor - Success")
     void testCreateDoctor() {
@@ -194,6 +221,7 @@ class AdminControllerTest {
         verify(adminService).createDoctor(any(Doctor.class));
     }
 
+    // Positive: Updates a doctor successfully
     @Test
     @DisplayName("Update doctor - Success")
     void testUpdateDoctor() {
@@ -206,6 +234,7 @@ class AdminControllerTest {
         verify(adminService).updateDoctor(eq(1L), any(Doctor.class));
     }
 
+    // Positive: Deletes a doctor successfully
     @Test
     @DisplayName("Delete doctor - Success")
     void testDeleteDoctor() {
@@ -217,6 +246,7 @@ class AdminControllerTest {
         verify(adminService).deleteDoctor(1L);
     }
 
+    // Positive: Retrieves all appointments successfully
     @Test
     @DisplayName("Get all appointments - Success")
     void testGetAllAppointments() {
@@ -231,6 +261,7 @@ class AdminControllerTest {
         verify(adminService).getAllAppointments();
     }
 
+    // Positive: Retrieves appointment by ID successfully
     @Test
     @DisplayName("Get appointment by ID - Success")
     void testGetAppointmentById() {
@@ -244,17 +275,18 @@ class AdminControllerTest {
         verify(adminService).getAppointmentById(1L);
     }
 
+    // Positive: Updates appointment status successfully
     @Test
     @DisplayName("Update appointment status - Success")
     void testUpdateAppointmentStatus() {
         testAppointment.setStatus(Appointment.Status.COMPLETED);
-        when(adminService.updateAppointmentStatus(1L, "COMPLETED")).thenReturn(testAppointment);
+    when(adminService.updateAppointmentStatus(1L, "COMPLETED", null)).thenReturn(testAppointment);
 
-        ResponseEntity<Appointment> response = adminController.updateAppointmentStatus(1L, "COMPLETED");
+    ResponseEntity<Appointment> response = adminController.updateAppointmentStatus(1L, "COMPLETED", null);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(Appointment.Status.COMPLETED, response.getBody().getStatus());
-        verify(adminService).updateAppointmentStatus(1L, "COMPLETED");
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(Appointment.Status.COMPLETED, response.getBody().getStatus());
+    verify(adminService).updateAppointmentStatus(1L, "COMPLETED", null);
     }
 }

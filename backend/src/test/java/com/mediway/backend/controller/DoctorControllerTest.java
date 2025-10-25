@@ -1,5 +1,23 @@
 package com.mediway.backend.controller;
 
+/*
+ * TESTS SUMMARY (DoctorControllerTest):
+ * - Get all doctors - Success                     : Positive
+ * - Get doctor by ID - Success                    : Positive
+ * - Get doctor by ID - Not Found                  : Negative
+ * - Create doctor - Success                       : Positive
+ * - Update doctor - Success                       : Positive
+ * - Update doctor - Not Found                     : Negative
+ * - Delete doctor - Success                       : Positive
+ * - Delete doctor - Not Found                     : Negative
+ * - Get available doctors - Success               : Positive
+ * - Get available doctors - Empty list            : Edge (empty result)
+ * - Login doctor - Success                        : Positive
+ * - Get doctor appointments - Success             : Positive
+ * - Get doctors for appointments - Success        : Positive
+ * - Photo upload/update tests (various)           : Mix (Positive/Edge/Negative)
+ */
+
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -67,6 +85,7 @@ class DoctorControllerTest {
         testDoctor.setPhone("1234567890");
     }
 
+    // Positive: Retrieves all doctors successfully
     @Test
     @DisplayName("Get all doctors - Success")
     void getAllDoctors_Success() throws Exception {
@@ -84,6 +103,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findAll();
     }
 
+    // Positive: Retrieves doctor by ID successfully
     @Test
     @DisplayName("Get doctor by ID - Success")
     void getDoctorById_Success() throws Exception {
@@ -100,6 +120,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findById(1L);
     }
 
+    // Negative: Returns not found when doctor ID does not exist
     @Test
     @DisplayName("Get doctor by ID - Not Found")
     void getDoctorById_NotFound() throws Exception {
@@ -113,6 +134,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findById(1L);
     }
 
+    // Positive: Creates a doctor successfully
     @Test
     @DisplayName("Create doctor - Success")
     void createDoctor_Success() throws Exception {
@@ -139,6 +161,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Positive: Updates a doctor successfully
     @Test
     @DisplayName("Update doctor - Success")
     void updateDoctor_Success() throws Exception {
@@ -166,6 +189,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Negative: Returns not found when updating non-existent doctor
     @Test
     @DisplayName("Update doctor - Not Found")
     void updateDoctor_NotFound() throws Exception {
@@ -189,6 +213,7 @@ class DoctorControllerTest {
         verify(doctorRepository, never()).save(any());
     }
 
+    // Positive: Deletes a doctor successfully
     @Test
     @DisplayName("Delete doctor - Success")
     void deleteDoctor_Success() throws Exception {
@@ -203,6 +228,7 @@ class DoctorControllerTest {
         verify(doctorRepository).deleteById(1L);
     }
 
+    // Negative: Returns not found when deleting non-existent doctor
     @Test
     @DisplayName("Delete doctor - Not Found")
     void deleteDoctor_NotFound() throws Exception {
@@ -217,6 +243,7 @@ class DoctorControllerTest {
         verify(doctorRepository, never()).deleteById(any());
     }
 
+    // Positive: Retrieves available doctors successfully
     @Test
     @DisplayName("Get available doctors - Success")
     void getAvailableDoctors_Success() throws Exception {
@@ -234,6 +261,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findByAvailableTrue();
     }
 
+    // Edge: Returns empty list when no available doctors
     @Test
     @DisplayName("Get available doctors - Empty list")
     void getAvailableDoctors_EmptyList() throws Exception {
@@ -249,6 +277,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findByAvailableTrue();
     }
 
+    // Positive: Doctor login succeeds
     @Test
     @DisplayName("Login doctor - Success")
     void loginDoctor_Success() throws Exception {
@@ -271,6 +300,7 @@ class DoctorControllerTest {
         verify(doctorService).login(any(LoginRequest.class));
     }
 
+    // Positive: Retrieves doctor appointments successfully
     @Test
     @DisplayName("Get doctor appointments - Success")
     void getDoctorAppointments_Success() throws Exception {
@@ -291,6 +321,7 @@ class DoctorControllerTest {
         verify(doctorService).getAppointmentsByDoctor(1L);
     }
 
+    // Positive: Retrieves doctors for appointments successfully
     @Test
     @DisplayName("Get doctors for appointments - Success")
     void getDoctorsForAppointments_Success() throws Exception {
@@ -307,6 +338,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findAll();
     }
 
+    // Positive: Retrieves all doctors including photo data
     @Test
     @DisplayName("Get all doctors - With photo")
     void getAllDoctors_WithPhoto() throws Exception {
@@ -324,6 +356,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findAll();
     }
 
+    // Positive: Retrieves doctor by ID including photo data
     @Test
     @DisplayName("Get doctor by ID - With photo")
     void getDoctorById_WithPhoto() throws Exception {
@@ -340,6 +373,7 @@ class DoctorControllerTest {
         verify(doctorRepository).findById(1L);
     }
 
+    // Positive: Creates doctor with photo successfully
     @Test
     @DisplayName("Create doctor with photo - Success")
     void createDoctorWithPhoto_Success() throws Exception {
@@ -378,6 +412,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Edge: Creates doctor without photo
     @Test
     @DisplayName("Create doctor with photo - Without photo")
     void createDoctorWithPhoto_WithoutPhoto() throws Exception {
@@ -405,6 +440,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Edge: Creates doctor with empty photo
     @Test
     @DisplayName("Create doctor with photo - Empty photo")
     void createDoctorWithPhoto_EmptyPhoto() throws Exception {
@@ -436,6 +472,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Positive: Updates doctor photo successfully
     @Test
     @DisplayName("Update doctor photo - Success")
     void updateDoctorPhoto_Success() throws Exception {
@@ -467,6 +504,7 @@ class DoctorControllerTest {
         verify(doctorRepository).save(any(Doctor.class));
     }
 
+    // Negative: Returns not found when updating photo for non-existent doctor
     @Test
     @DisplayName("Update doctor photo - Doctor not found")
     void updateDoctorPhoto_NotFound() throws Exception {
