@@ -72,6 +72,7 @@ class SimpleAuthControllerTest {
 
     @Test
     void register_ValidUser_ReturnsSuccess() throws Exception {
+        // Positive: register_ValidUser_ReturnsSuccess
         // Given
         User user = new User();
         user.setId(1L);
@@ -92,6 +93,7 @@ class SimpleAuthControllerTest {
 
     @Test
     void register_ExistingEmail_ReturnsBadRequest() throws Exception {
+        // Negative: register_ExistingEmail_ReturnsBadRequest
         // Given
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(new User()));
 
@@ -105,6 +107,7 @@ class SimpleAuthControllerTest {
 
     @Test
     void login_ValidCredentials_ReturnsSuccess() throws Exception {
+        // Positive: login_ValidCredentials_ReturnsSuccess
         // Given
         User user = new User();
         user.setId(1L);
@@ -126,6 +129,7 @@ class SimpleAuthControllerTest {
 
     @Test
     void login_InvalidCredentials_ReturnsUnauthorized() throws Exception {
+        // Negative: login_InvalidCredentials_ReturnsUnauthorized
         // Given
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.empty());
 
@@ -140,6 +144,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Register with fullName field instead of name")
     void register_WithFullName_ReturnsSuccess() throws Exception {
+        // Edge: register variations (fullName/empty name)
         // Given
         User user = new User();
         user.setId(1L);
@@ -163,6 +168,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Register with empty name falls back to fullName")
     void register_EmptyNameUsesFullName_ReturnsSuccess() throws Exception {
+        // Edge: register variations (fullName/empty name)
         // Given
         User user = new User();
         user.setId(2L);
@@ -184,6 +190,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Register error handling - exception thrown")
     void register_ExceptionThrown_ReturnsInternalServerError() throws Exception {
+        // Negative: register exception handling
         // Given
         when(userRepository.findByEmail(anyString())).thenThrow(new RuntimeException("Database error"));
 
@@ -199,6 +206,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Login with wrong password")
     void login_WrongPassword_ReturnsUnauthorized() throws Exception {
+        // Negative: login wrong password / exception handling
         // Given
         User user = new User();
         user.setId(1L);
@@ -219,6 +227,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Login error handling - exception thrown")
     void login_ExceptionThrown_ReturnsInternalServerError() throws Exception {
+        // Negative: login wrong password / exception handling
         // Given
         when(userRepository.findByEmail(anyString())).thenThrow(new RuntimeException("Database connection lost"));
 
@@ -234,6 +243,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Doctor login - success")
     void doctorLogin_ValidCredentials_ReturnsSuccess() throws Exception {
+        // Positive: doctor/admin login variations (success/invalid)
         // Given
         Doctor doctor = new Doctor();
         doctor.setId(10L);
@@ -257,6 +267,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Doctor login - invalid email")
     void doctorLogin_InvalidEmail_ReturnsUnauthorized() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         when(doctorRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -272,6 +283,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Doctor login - wrong password")
     void doctorLogin_WrongPassword_ReturnsUnauthorized() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         Doctor doctor = new Doctor();
         doctor.setId(10L);
@@ -291,6 +303,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Doctor login - exception handling")
     void doctorLogin_ExceptionThrown_ReturnsInternalServerError() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         when(doctorRepository.findAll()).thenThrow(new RuntimeException("Database error"));
 
@@ -306,6 +319,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Admin login - success")
     void adminLogin_ValidCredentials_ReturnsSuccess() throws Exception {
+        // Positive: doctor/admin login variations (success/invalid)
         // Given
         Admin admin = new Admin();
         admin.setId(100L);
@@ -329,6 +343,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Admin login - invalid email")
     void adminLogin_InvalidEmail_ReturnsUnauthorized() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         when(adminRepository.findByEmail("unknown@hospital.com")).thenReturn(Optional.empty());
 
@@ -344,6 +359,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Admin login - wrong password")
     void adminLogin_WrongPassword_ReturnsUnauthorized() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         Admin admin = new Admin();
         admin.setId(100L);
@@ -363,6 +379,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Admin login - exception handling")
     void adminLogin_ExceptionThrown_ReturnsInternalServerError() throws Exception {
+        // Negative: doctor/admin login variations (success/invalid)
         // Given
         when(adminRepository.findByEmail(anyString())).thenThrow(new RuntimeException("Connection timeout"));
 
@@ -378,6 +395,7 @@ class SimpleAuthControllerTest {
     @Test
     @DisplayName("Health check endpoint")
     void health_ReturnsHealthy() throws Exception {
+        // Positive: health endpoint (health check)
         // When & Then
         mockMvc.perform(get("/auth/health"))
                 .andExpect(status().isOk())

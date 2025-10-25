@@ -96,6 +96,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Success")
     void testGetDashboardStats() {
+        // Positive: Get dashboard stats - Success
         // Setup
         when(userRepository.count()).thenReturn(10L);
         when(doctorRepository.count()).thenReturn(5L);
@@ -139,6 +140,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With appointments by department")
     void testGetDashboardStats_AppointmentsByDepartment() {
+        // Positive: Appointments by department
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -167,6 +169,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With monthly revenue")
     void testGetDashboardStats_MonthlyRevenue() {
+        // Positive: Monthly revenue
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -196,6 +199,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With daily appointments trend")
     void testGetDashboardStats_DailyAppointments() {
+        // Positive: Daily appointments trend
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -223,6 +227,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With top paying patients")
     void testGetDashboardStats_TopPayingPatients() {
+        // Positive: Top paying patients
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -254,6 +259,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With revenue by doctor")
     void testGetDashboardStats_RevenueByDoctor() {
+        // Positive: Revenue by doctor
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -284,6 +290,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With pending payments over time")
     void testGetDashboardStats_PendingPaymentsOverTime() {
+        // Positive: Pending payments over time
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -307,6 +314,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download CSV summary - Success")
     void testDownloadCsvSummary() {
+        // Positive: Download CSV summary
         when(userRepository.count()).thenReturn(10L);
         when(doctorRepository.count()).thenReturn(5L);
         when(appointmentRepository.count()).thenReturn(20L);
@@ -343,6 +351,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download CSV summary - With all appointment statuses")
     void testDownloadCsvSummary_AllStatuses() {
+        // Positive: CSV summary with all statuses
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(3L);
         when(appointmentRepository.count()).thenReturn(10L);
@@ -372,6 +381,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - Success")
     void testDownloadPdfSummary() {
+        // Positive: Download PDF summary
         when(userRepository.count()).thenReturn(10L);
         when(doctorRepository.count()).thenReturn(5L);
         when(appointmentRepository.count()).thenReturn(20L);
@@ -396,6 +406,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Empty data")
     void testGetDashboardStats_EmptyData() {
+        // Edge: Empty data handling
         when(userRepository.count()).thenReturn(0L);
         when(doctorRepository.count()).thenReturn(0L);
         when(appointmentRepository.count()).thenReturn(0L);
@@ -419,6 +430,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Null payment amounts handled")
     void testGetDashboardStats_NullPaymentAmounts() {
+        // Edge: Null payment amounts
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -443,6 +455,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Payment without date is skipped for monthly revenue")
     void testGetDashboardStats_PaymentWithoutDate() {
+        // Edge: Payment without date
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -468,6 +481,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Appointment without date is skipped")
     void testGetDashboardStats_AppointmentWithoutDate() {
+        // Edge: Appointment without date
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -493,6 +507,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Appointment with unknown doctor specialization")
     void testGetDashboardStats_UnknownSpecialization() {
+        // Edge: Unknown doctor specialization
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -519,6 +534,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Payment not completed is skipped for revenue")
     void testGetDashboardStats_NonCompletedPaymentSkipped() {
+        // Edge: Non-completed payment skipped
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -547,6 +563,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Appointment with null doctorId is skipped for revenue by doctor")
     void testGetDashboardStats_AppointmentWithNullDoctorId() {
+        // Edge: Null doctor ID in appointment
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -578,6 +595,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Payment with null appointmentId is skipped for doctor revenue")
     void testGetDashboardStats_PaymentWithNullAppointmentId() {
+        // Edge: Null appointment ID in payment
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -608,6 +626,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Pending payment without date is skipped")
     void testGetDashboardStats_PendingPaymentWithoutDate() {
+        // Edge: Pending payment without date
         when(userRepository.count()).thenReturn(5L);
         when(doctorRepository.count()).thenReturn(2L);
         when(appointmentRepository.count()).thenReturn(3L);
@@ -633,6 +652,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get all medical records - Success")
     void testGetAllMedicalRecords() {
+        // Positive: Get all medical records
         MedicalRecord record1 = new MedicalRecord();
         record1.setId(1L);
         record1.setDiagnosis("Test");
@@ -650,6 +670,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get patient medical records - Success")
     void testGetPatientMedicalRecords() {
+        // Positive: Get patient medical records
         MedicalRecord record1 = new MedicalRecord();
         record1.setId(1L);
         record1.setPatientId(1L);
@@ -668,6 +689,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get all appointments - Success")
     void testGetAllAppointments() {
+        // Positive: Get all appointments
         when(appointmentRepository.findAll()).thenReturn(Arrays.asList(testAppointment));
 
         ResponseEntity<List<Appointment>> response = reportsController.getAllAppointments();
@@ -681,6 +703,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get all payments - Success")
     void testGetAllPayments() {
+        // Positive: Get all payments
         when(paymentRepository.findAll()).thenReturn(Arrays.asList(testPayment));
 
         ResponseEntity<List<Payment>> response = reportsController.getAllPayments();
@@ -694,6 +717,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With exception handling")
     void testDownloadPdfSummary_Exception() {
+        // Negative: PDF download exception handling
         // Force an exception by not properly mocking dependencies
         when(userRepository.count()).thenThrow(new RuntimeException("Database error"));
 
@@ -705,6 +729,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With monthly revenue data")
     void testDownloadPdfSummary_WithMonthlyRevenue() {
+        // Positive: PDF with monthly revenue
         Payment payment1 = new Payment();
         payment1.setId(1L);
         payment1.setStatus(Payment.Status.COMPLETED);
@@ -742,6 +767,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With appointments by department")
     void testDownloadPdfSummary_WithAppointmentsByDepartment() {
+        // Positive: PDF with appointments by department
         Doctor doctor = new Doctor();
         doctor.setId(1L);
         doctor.setSpecialization("Cardiology");
@@ -776,6 +802,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With daily appointments")
     void testDownloadPdfSummary_WithDailyAppointments() {
+        // Positive: PDF with daily appointments
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setAppointmentDate(LocalDateTime.now());
@@ -805,6 +832,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With pending payments over time")
     void testDownloadPdfSummary_WithPendingPaymentsOverTime() {
+        // Positive: PDF with pending payments over time
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.PENDING);
@@ -835,6 +863,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With empty revenue data")
     void testDownloadPdfSummary_WithEmptyRevenueData() {
+        // Edge: PDF with empty revenue data
         when(userRepository.count()).thenReturn(0L);
         when(doctorRepository.count()).thenReturn(0L);
         when(appointmentRepository.count()).thenReturn(0L);
@@ -856,6 +885,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With multiple revenue entries")
     void testGetDashboardStats_MultipleRevenueEntries() {
+        // Positive: Multiple revenue entries
         Payment payment1 = new Payment();
         payment1.setId(1L);
         payment1.setStatus(Payment.Status.COMPLETED);
@@ -907,6 +937,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With zero amount payment")
     void testGetDashboardStats_ZeroAmountPayment() {
+        // Edge: Zero amount payment
         Payment payment = new Payment();
         payment.setId(1L);
         payment.setStatus(Payment.Status.COMPLETED);
@@ -932,6 +963,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - With multiple specializations")
     void testGetDashboardStats_MultipleSpecializations() {
+        // Positive: Multiple doctor specializations
         Doctor doctor1 = new Doctor();
         doctor1.setId(1L);
         doctor1.setSpecialization("Cardiology");
@@ -974,6 +1006,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Revenue by doctor with multiple doctors")
     void testGetDashboardStats_RevenueByDoctorMultiple() {
+        // Positive: Revenue by multiple doctors
         Doctor doctor1 = new Doctor();
         doctor1.setId(1L);
 
@@ -1022,6 +1055,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Get dashboard stats - Top paying patients with multiple patients")
     void testGetDashboardStats_TopPayingPatientsMultiple() {
+        // Positive: Top paying patients multiple
         Payment payment1 = new Payment();
         payment1.setId(1L);
         payment1.setUserId(1L);
@@ -1072,6 +1106,7 @@ class SimpleReportsControllerTest {
     @Test
     @DisplayName("Download PDF summary - With all data populated")
     void testDownloadPdfSummary_AllDataPopulated() {
+        // Positive: PDF with all data populated
         Doctor doctor = new Doctor();
         doctor.setId(1L);
         doctor.setSpecialization("Cardiology");
