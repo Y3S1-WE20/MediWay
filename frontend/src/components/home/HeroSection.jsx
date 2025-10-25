@@ -106,18 +106,35 @@ const HeroSection = () => {
   ];
 
   return (
-    <section ref={heroRef} className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 pt-20">
+    // Full-bleed: set section to viewport width and center it using margin trick so background reaches edges
+    <section
+      ref={heroRef}
+      style={{ width: '100vw', marginLeft: 'calc(50% - 50vw)' }}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 pt-20"
+    >
       {/* Animated Background */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 z-0"
         style={{ y, opacity }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10" />
+        {/* Background image (loads from src/assets/img/hero-bg.png). If missing, fallback to Unsplash. */}
+        <img
+          src="/src/assets/img/hero-bg.jpg"
+          alt="Hero background"
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            // fallback remote image
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?w=1600&q=80&auto=format&fit=crop';
+          }}
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 mix-blend-overlay" />
         <div className="absolute top-20 left-20 w-72 h-72 bg-green-400/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-pulse delay-700" />
       </motion.div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 py-20 relative z-10">
+  <div className="w-full max-w-7xl mx-auto px-4 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8">

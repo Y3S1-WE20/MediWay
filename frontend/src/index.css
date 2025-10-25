@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Reset default body margin to avoid small gaps and ensure full-bleed sections work as expected */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
 :root {
   --primary: 142 71% 45%; /* #22c55e - Lovable AI green */
   --primary-foreground: 0 0% 100%;

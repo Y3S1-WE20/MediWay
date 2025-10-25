@@ -119,6 +119,17 @@ const ServicesSection = () => {
                 transition: { duration: 0.3 }
               }}
               className="group relative"
+              role="button"
+              tabIndex={0}
+              aria-label={`View details for ${service.title}`}
+              onClick={() => navigate(`/service/${service.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/service/${service.id}`);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <div className="relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
                 {/* Gradient Background on Hover */}
