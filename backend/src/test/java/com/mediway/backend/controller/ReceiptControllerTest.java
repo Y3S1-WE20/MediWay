@@ -121,6 +121,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should generate receipt for completed payment")
     void testGenerateReceipt_Success() {
+        // Positive: generate receipt for completed payment
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(false);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
@@ -137,6 +138,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return existing receipt if already generated")
     void testGenerateReceipt_AlreadyExists() {
+        // Edge: return existing receipt if already generated (idempotent)
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(true);
         when(receiptRepository.findByPaymentId(1L)).thenReturn(Optional.of(testReceipt));
 
@@ -149,6 +151,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 400 when payment not found")
     void testGenerateReceipt_PaymentNotFound() {
+        // Negative: return 400 when payment not found
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(false);
         when(paymentRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -160,6 +163,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 403 when payment does not belong to user")
     void testGenerateReceipt_Forbidden() {
+        // Negative: return 403 when payment does not belong to user (forbidden)
         testPayment.setUserId(2L); // Different user
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(false);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
@@ -172,6 +176,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 400 when payment not completed")
     void testGenerateReceipt_PaymentNotCompleted() {
+        // Negative: return 400 when payment not completed
         testPayment.setStatus(Payment.Status.PENDING);
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(false);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
@@ -184,6 +189,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should get receipt by payment ID")
     void testGetReceiptByPayment_Success() {
+        // Positive: get receipt by payment ID - Success
         when(receiptRepository.findByPaymentId(1L)).thenReturn(Optional.of(testReceipt));
 
         ResponseEntity<?> response = receiptController.getReceiptByPayment(1L, 1L);
@@ -194,6 +200,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 404 when receipt not found by payment")
     void testGetReceiptByPayment_NotFound() {
+        // Negative: get receipt by payment ID - Not Found
         when(receiptRepository.findByPaymentId(1L)).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = receiptController.getReceiptByPayment(1L, 1L);
@@ -204,6 +211,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 403 when accessing another user's receipt by payment")
     void testGetReceiptByPayment_Forbidden() {
+        // Negative: return 403 when accessing another user's receipt by payment
         testReceipt.setUserId(2L); // Different user's receipt
         when(receiptRepository.findByPaymentId(1L)).thenReturn(Optional.of(testReceipt));
 
@@ -215,6 +223,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should get all receipts for user")
     void testGetMyReceipts_Success() {
+        // Positive: get all receipts for user - Success
         List<Receipt> receipts = Arrays.asList(testReceipt);
         when(receiptRepository.findByUserIdOrderByIssueDateDesc(1L)).thenReturn(receipts);
 
@@ -226,6 +235,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should use default userId when null")
     void testGenerateReceipt_DefaultUserId() {
+        // Edge: default userId when null
         when(receiptRepository.existsByPaymentId(1L)).thenReturn(false);
         when(paymentRepository.findById(1L)).thenReturn(Optional.of(testPayment));
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(testAppointment));
@@ -241,6 +251,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should handle exception in generateReceipt")
     void testGenerateReceipt_Exception() {
+        // Negative: error handling for generateReceipt (exception paths)
         when(receiptRepository.existsByPaymentId(1L)).thenThrow(new RuntimeException("Database error"));
 
         ResponseEntity<?> response = receiptController.generateReceipt(1L, 1L);
@@ -251,6 +262,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should handle exception in getReceiptByPayment")
     void testGetReceiptByPayment_Exception() {
+        // Negative: error handling for getReceiptByPayment (exception paths)
         when(receiptRepository.findByPaymentId(1L)).thenThrow(new RuntimeException("Database error"));
 
         ResponseEntity<?> response = receiptController.getReceiptByPayment(1L, 1L);
@@ -261,6 +273,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should handle exception in getMyReceipts")
     void testGetMyReceipts_Exception() {
+        // Negative: error handling for getMyReceipts (exception paths)
         when(receiptRepository.findByUserIdOrderByIssueDateDesc(1L))
                 .thenThrow(new RuntimeException("Database error"));
 
@@ -372,6 +385,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should download PDF receipt successfully")
     void testDownloadReceiptPDF_Success() {
+        // Positive: download PDF receipt successfully
         testReceipt.setReceiptNumber("REC-12345");
         testReceipt.setPatientEmail("test@example.com");
         testReceipt.setDoctorName("Dr. Smith");
@@ -390,6 +404,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 404 when downloading PDF for non-existent receipt")
     void testDownloadReceiptPDF_NotFound() {
+        // Negative: return 404 when downloading PDF for non-existent receipt
         when(receiptRepository.findByReceiptNumber("INVALID")).thenReturn(Optional.empty());
 
         ResponseEntity<byte[]> response = receiptController.downloadReceiptPDF("INVALID", 1L);
@@ -400,6 +415,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should return 403 when downloading another user's PDF")
     void testDownloadReceiptPDF_Forbidden() {
+        // Negative: return 403 when downloading another user's PDF
         testReceipt.setUserId(2L); // Different user
         testReceipt.setReceiptNumber("REC-12345");
         when(receiptRepository.findByReceiptNumber("REC-12345")).thenReturn(Optional.of(testReceipt));
@@ -412,6 +428,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should use default userId when null in getReceiptByPayment")
     void testGetReceiptByPayment_DefaultUserId() {
+        // Edge: default userId handling in getReceiptByPayment
         when(receiptRepository.findByPaymentId(1L)).thenReturn(Optional.of(testReceipt));
 
         ResponseEntity<?> response = receiptController.getReceiptByPayment(1L, null);
@@ -422,6 +439,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should use default userId when null in getReceiptByNumber")
     void testGetReceiptByNumber_DefaultUserId() {
+        // Edge: default userId handling in getReceiptByNumber
         testReceipt.setReceiptNumber("REC-12345");
         when(receiptRepository.findByReceiptNumber("REC-12345")).thenReturn(Optional.of(testReceipt));
 
@@ -433,6 +451,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should use default userId when null in getMyReceipts")
     void testGetMyReceipts_DefaultUserId() {
+        // Edge: default userId handling in getMyReceipts
         List<Receipt> receipts = Arrays.asList(testReceipt);
         when(receiptRepository.findByUserIdOrderByIssueDateDesc(1L)).thenReturn(receipts);
 
@@ -444,6 +463,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should use default userId when null in downloadReceiptPDF")
     void testDownloadReceiptPDF_DefaultUserId() {
+        // Edge: default userId handling in downloadReceiptPDF
         testReceipt.setReceiptNumber("REC-12345");
         testReceipt.setPatientEmail("test@example.com");
         testReceipt.setDoctorName("Dr. Smith");
@@ -462,6 +482,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should generate PDF without QR code when null")
     void testDownloadReceiptPDF_NullQrCode() {
+        // Edge: generate PDF without QR code when null
         testReceipt.setReceiptNumber("REC-12345");
         testReceipt.setPatientEmail("test@example.com");
         testReceipt.setDoctorName("Dr. Smith");
@@ -480,6 +501,7 @@ class ReceiptControllerTest {
     @Test
     @DisplayName("Should handle exception during PDF generation")
     void testDownloadReceiptPDF_Exception() {
+        // Negative: handle exception during PDF generation
         when(receiptRepository.findByReceiptNumber("REC-12345"))
                 .thenThrow(new RuntimeException("Database error"));
 

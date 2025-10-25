@@ -71,6 +71,7 @@ class CustomUserDetailsServiceTest {
         testAdmin.setPassword("encodedPassword789");
     }
 
+    // Positive: Load patient user by email
     @Test
     @DisplayName("Should load patient user by email")
     void testLoadUserByUsername_Patient() {
@@ -88,6 +89,7 @@ class CustomUserDetailsServiceTest {
         verifyNoInteractions(doctorRepository, adminRepository);
     }
 
+    // Positive: Load doctor user by email
     @Test
     @DisplayName("Should load doctor user by email")
     void testLoadUserByUsername_Doctor() {
@@ -107,6 +109,7 @@ class CustomUserDetailsServiceTest {
         verifyNoInteractions(adminRepository);
     }
 
+    // Positive: Load admin user by email
     @Test
     @DisplayName("Should load admin user by email")
     void testLoadUserByUsername_Admin() {
@@ -127,6 +130,7 @@ class CustomUserDetailsServiceTest {
         verify(adminRepository).findByEmail("admin@example.com");
     }
 
+    // Negative: Throw UsernameNotFoundException when user not found
     @Test
     @DisplayName("Should throw UsernameNotFoundException when user not found")
     void testLoadUserByUsername_NotFound() {
@@ -146,6 +150,7 @@ class CustomUserDetailsServiceTest {
         verify(adminRepository).findByEmail(email);
     }
 
+    // Edge: Handle patient with ADMIN role
     @Test
     @DisplayName("Should handle patient with ADMIN role")
     void testLoadUserByUsername_PatientWithAdminRole() {
@@ -159,6 +164,7 @@ class CustomUserDetailsServiceTest {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
     }
 
+    // Edge: Handle patient with DOCTOR role
     @Test
     @DisplayName("Should handle patient with DOCTOR role")
     void testLoadUserByUsername_PatientWithDoctorRole() {
@@ -172,6 +178,7 @@ class CustomUserDetailsServiceTest {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR")));
     }
 
+    // Edge: Prioritize user repository over doctor and admin
     @Test
     @DisplayName("Should prioritize user repository over doctor and admin")
     void testLoadUserByUsername_PriorityOrder() {
@@ -186,6 +193,7 @@ class CustomUserDetailsServiceTest {
         verifyNoInteractions(doctorRepository, adminRepository);
     }
 
+    // Edge: Handle null email gracefully
     @Test
     @DisplayName("Should handle null email gracefully")
     void testLoadUserByUsername_NullEmail() {
@@ -197,6 +205,7 @@ class CustomUserDetailsServiceTest {
                 () -> customUserDetailsService.loadUserByUsername(null));
     }
 
+    // Edge: Handle empty email gracefully
     @Test
     @DisplayName("Should handle empty email gracefully")
     void testLoadUserByUsername_EmptyEmail() {
