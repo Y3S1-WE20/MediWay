@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
@@ -19,6 +20,9 @@ import DoctorDashboard from './pages/DoctorDashboard';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import PayPalCheckout from './pages/PayPalCheckout';
+import DoctorProfile from './pages/DoctorProfile';
+import ServiceDetail from './pages/ServiceDetail';
+import About from './pages/About';
 
 import './App.css';
 
@@ -26,13 +30,16 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background w-full overflow-x-hidden">
           <Navbar />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/doctor/:doctorId" element={<DoctorProfile />} />
+            <Route path="/service/:serviceId" element={<ServiceDetail />} />
 
             {/* Protected Routes */}
             <Route
@@ -109,6 +116,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Footer />
+          <ScrollToTop />
         </div>
       </Router>
     </AuthProvider>
