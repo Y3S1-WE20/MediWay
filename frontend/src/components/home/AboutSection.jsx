@@ -59,21 +59,21 @@ const AboutSection = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-green-600/20 to-transparent" />
               </motion.div>
 
-              {/* Floating Card */}
+              {/* Floating Card - responsive placement */}
               <motion.div
-                className="absolute -bottom-10 -right-10 bg-white p-6 rounded-2xl shadow-2xl"
-                initial={{ opacity: 0, scale: 0.8 }}
+                className="absolute left-1/2 transform -translate-x-1/2 md:translate-x-0 md:left-auto md:-bottom-8 md:right-8 bottom-0 md:bottom-auto bg-white p-4 md:p-6 rounded-2xl shadow-lg w-auto max-w-xs"
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.4 }}
-                whileHover={{ y: -5 }}
+                transition={{ delay: 0.45 }}
+                whileHover={{ y: -6 }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <Award className="w-8 h-8 text-green-600" />
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Award className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-gray-900">25+</div>
-                    <div className="text-sm text-gray-600">Years Experience</div>
+                    <div className="text-2xl md:text-3xl font-bold text-gray-900 leading-none">25+</div>
+                    <div className="text-xs md:text-sm text-gray-600">Years Experience</div>
                   </div>
                 </div>
               </motion.div>
