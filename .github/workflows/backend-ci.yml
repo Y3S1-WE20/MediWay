@@ -40,6 +40,10 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    - name: Make Maven wrapper executable
+      working-directory: ./backend
+      run: chmod +x ./mvnw
+
     - name: Wait for MySQL to be ready
       run: |
         for i in {1..30}; do
